@@ -29,4 +29,3 @@ Homestead.json
 .phpactor.json
 auth.json
 /core/config/config.php
-/core/config/conn.php
