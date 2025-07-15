@@ -1,5 +1,5 @@
 <?php
-// index.php
+
 
 session_start();
 require_once("core/config/config.php");
