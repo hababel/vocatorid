@@ -84,10 +84,11 @@ $invitacion = $datos['invitacion'];
 <script>
 	function verificacionHandler() {
 		return {
-			estado: 'inicial', // inicial, escaneando, procesando, error
-			mensaje: '',
-			coordenadas: null,
-			html5QrCode: null,
+                        estado: 'inicial', // inicial, escaneando, procesando, error
+                        mensaje: '',
+                        coordenadas: null,
+                        html5QrCode: null,
+                        ultimoScan: null,
 
 			init() {
 				if ('<?php echo $evento->modo; ?>' === 'Virtual') {
@@ -101,18 +102,64 @@ $invitacion = $datos['invitacion'];
 				// ... (sin cambios)
 			},
 
-			iniciarScanner() {
-				const qrPlaceholder = document.getElementById('qr-reader-placeholder');
-				this.estado = 'escaneando'; // Actualiza el estado
+                        iniciarScanner() {
+                                const qrPlaceholder = document.getElementById('qr-reader-placeholder');
+                                this.estado = 'escaneando';
+                                const onScanSuccess = (decodedText) => {
+                                        if (decodedText === this.ultimoScan) return;
+                                        this.ultimoScan = decodedText;
+                                        this.procesarVerificacion(decodedText);
+                                        setTimeout(() => { this.ultimoScan = null; }, 4000);
+                                };
 
-				this.html5QrCode = new Html5Qrcode("qr-reader");
-				// ... (el resto de la función sin cambios)
-			},
+                                this.html5QrCode = new Html5Qrcode('qr-reader');
+                                const config = {
+                                        fps: 10,
+                                        qrbox: (w, h) => {
+                                                const s = Math.min(w, h);
+                                                return { width: Math.floor(s * 0.7), height: Math.floor(s * 0.7) };
+                                        }
+                                };
 
-			async procesarVerificacion(tokenDinamico) {
-				this.estado = 'procesando'; // **AQUÍ SE MUESTRA EL MENSAJE DE "PROCESANDO"**
-				// ... (el resto de la función sin cambios)
-			},
+                                this.html5QrCode.start({ facingMode: 'environment' }, config, onScanSuccess)
+                                        .then(() => {
+                                                qrPlaceholder.style.display = 'none';
+                                        })
+                                        .catch(err => {
+                                                console.error('Error al iniciar la cámara', err);
+                                                this.mostrarError('No se pudo iniciar la cámara.');
+                                        });
+                        },
+
+                        async procesarVerificacion(tokenDinamico) {
+                                this.estado = 'procesando';
+                                if (this.html5QrCode && this.html5QrCode.isScanning) {
+                                        await this.html5QrCode.stop().catch(() => {});
+                                }
+                                try {
+                                        const formData = new FormData();
+                                        formData.append('token_acceso', '<?php echo $invitacion->token_acceso; ?>');
+                                        formData.append('token_dinamico', tokenDinamico);
+                                        if (this.coordenadas) {
+                                                formData.append('latitud', this.coordenadas.lat);
+                                                formData.append('longitud', this.coordenadas.lng);
+                                        }
+
+                                        const resp = await fetch('<?php echo URL_PATH; ?>asistencia/procesarVerificacion', {
+                                                method: 'POST',
+                                                body: formData
+                                        });
+                                        const data = await resp.json();
+                                        if (data.exito) {
+                                                window.location.href = data.siguiente_paso;
+                                        } else {
+                                                this.mostrarError(data.mensaje || 'Ocurrió un error.');
+                                        }
+                                } catch (e) {
+                                        console.error('Error al procesar verificación', e);
+                                        this.mostrarError('Error al comunicar con el servidor.');
+                                }
+                        },
 
 			mostrarError(msg) {
 				this.estado = 'error';
