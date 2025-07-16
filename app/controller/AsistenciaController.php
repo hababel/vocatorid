@@ -69,9 +69,8 @@ class AsistenciaController extends Controller
 			echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido.']);
 			return;
 		}
-               $token_acceso = $_POST['token_acceso'] ?? '';
-               $token_dinamico = $_POST['token_dinamico'] ?? '';
-               $token_dinamico = strtoupper(trim($token_dinamico));
+		$token_acceso = $_POST['token_acceso'] ?? '';
+		$token_dinamico = $_POST['token_dinamico'] ?? '';
 		$latitud_asistente = $_POST['latitud'] ?? null;
 		$longitud_asistente = $_POST['longitud'] ?? null;
 		$invitacion = $this->invitacionModel->obtenerPorToken($token_acceso);
