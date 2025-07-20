@@ -69,8 +69,9 @@ class AsistenciaController extends Controller
 			echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido.']);
 			return;
 		}
-		$token_acceso = $_POST['token_acceso'] ?? '';
-		$token_dinamico = $_POST['token_dinamico'] ?? '';
+               $token_acceso = $_POST['token_acceso'] ?? '';
+               $token_dinamico = $_POST['token_dinamico'] ?? '';
+               $token_dinamico = strtoupper(trim($token_dinamico));
 		$latitud_asistente = $_POST['latitud'] ?? null;
 		$longitud_asistente = $_POST['longitud'] ?? null;
 		$invitacion = $this->invitacionModel->obtenerPorToken($token_acceso);
@@ -88,10 +89,12 @@ class AsistenciaController extends Controller
 			echo json_encode(['exito' => false, 'mensaje' => 'El evento asociado no se pudo encontrar.']);
 			return;
 		}
-		if (!$this->tokenAsistenciaModel->validarToken($evento->id, $token_dinamico)) {
-			echo json_encode(['exito' => false, 'mensaje' => 'El código QR es incorrecto o ha expirado.']);
-			return;
-		}
+                if (!$this->tokenAsistenciaModel->validarToken($evento->id, $token_dinamico)) {
+                        $mensaje = 'El código QR ya no es válido o no corresponde al evento. '
+                                . 'Obtén un nuevo código desde el kiosco y vuelve a intentarlo.';
+                        echo json_encode(['exito' => false, 'mensaje' => $mensaje]);
+                        return;
+                }
 		if ($evento->modo !== 'Virtual') {
 			if (is_null($latitud_asistente) || is_null($longitud_asistente)) {
 				echo json_encode(['exito' => false, 'mensaje' => 'No se pudo obtener tu ubicación GPS.']);
