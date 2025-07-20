@@ -235,7 +235,11 @@ class EventoController extends Controller
 	{
 		header('Content-Type: application/json');
 		$token_dinamico = strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
-		$expiracion_segundos = 15;
+                // El token se actualiza periódicamente en el kiosco y antes
+                // expiraba a los 15 segundos, lo que resultaba demasiado
+                // estricto para algunos asistentes. Ahora otorgamos un margen
+                // mayor de tiempo para que puedan escanearlo con calma.
+                $expiracion_segundos = 120; // 2 minutos de validez
 		$fecha_expiracion = (new DateTime())->add(new DateInterval("PT{$expiracion_segundos}S"))->format('Y-m-d H:i:s');
 
 		if ($this->tokenAsistenciaModel->crear($id_evento, $token_dinamico, $fecha_expiracion)) {
