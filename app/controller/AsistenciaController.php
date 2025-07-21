@@ -89,12 +89,31 @@ class AsistenciaController extends Controller
 			echo json_encode(['exito' => false, 'mensaje' => 'El evento asociado no se pudo encontrar.']);
 			return;
 		}
-                if (!$this->tokenAsistenciaModel->validarToken($evento->id, $token_dinamico)) {
-                        $mensaje = 'El código QR ya no es válido o no corresponde al evento. '
-                                . 'Obtén un nuevo código desde el kiosco y vuelve a intentarlo.';
-                        echo json_encode(['exito' => false, 'mensaje' => $mensaje]);
-                        return;
-                }
+
+		// --- INICIO DE LA SECCIÓN DE DEPURACIÓN ---
+		$resultado_validacion = $this->tokenAsistenciaModel->validarToken($evento->id, $token_dinamico);
+		$hora_actual_php = (new DateTime())->format('Y-m-d H:i:s');
+
+		if (!$resultado_validacion['valido']) {
+			$mensaje = 'El código QR ya no es válido o no corresponde al evento. '
+				. 'Obtén un nuevo código desde el kiosco y vuelve a intentarlo.';
+
+			// Enviamos toda la información de depuración
+			echo json_encode([
+				'exito' => false,
+				'mensaje' => $mensaje,
+				'debug_info' => [
+					'validacion_fallida' => true,
+					'hora_actual_servidor_php' => $hora_actual_php,
+					'hora_expiracion_del_token' => $resultado_validacion['fecha_expiracion_token'] ?? 'No encontrado',
+					'hora_actual_base_de_datos' => $resultado_validacion['hora_actual_db'] ?? 'No disponible',
+					'motivo_del_fallo' => $resultado_validacion['motivo'] ?? 'La hora de expiración es anterior a la hora de la BD.'
+				]
+			]);
+			return;
+		}
+		// --- FIN DE LA SECCIÓN DE DEPURACIÓN ---
+
 		if ($evento->modo !== 'Virtual') {
 			if (is_null($latitud_asistente) || is_null($longitud_asistente)) {
 				echo json_encode(['exito' => false, 'mensaje' => 'No se pudo obtener tu ubicación GPS.']);
