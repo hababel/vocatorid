@@ -69,9 +69,9 @@ class AsistenciaController extends Controller
 			echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido.']);
 			return;
 		}
-               $token_acceso = $_POST['token_acceso'] ?? '';
-               $token_dinamico = $_POST['token_dinamico'] ?? '';
-               $token_dinamico = strtoupper(trim($token_dinamico));
+		$token_acceso = $_POST['token_acceso'] ?? '';
+		$token_dinamico = $_POST['token_dinamico'] ?? '';
+		$token_dinamico = strtoupper(trim($token_dinamico));
 		$latitud_asistente = $_POST['latitud'] ?? null;
 		$longitud_asistente = $_POST['longitud'] ?? null;
 		$invitacion = $this->invitacionModel->obtenerPorToken($token_acceso);
@@ -97,13 +97,6 @@ class AsistenciaController extends Controller
 		if (!$resultado_validacion['valido']) {
 			$mensaje = 'El código QR ya no es válido o no corresponde al evento. '
 				. 'Obtén un nuevo código desde el kiosco y vuelve a intentarlo.';
-$mensaje.=
-					'validacion_fallida'.true."<br>".
-					'hora_actual_servidor_php' .$hora_actual_php."<br>".
-					'hora_expiracion_del_token' .$resultado_validacion['fecha_expiracion_token'] ?? 'No encontrado'."<br>".
-					'hora_actual_base_de_datos' . $resultado_validacion['hora_actual_db'] ?? 'No disponible'."<br>".
-					'motivo_del_fallo' . $resultado_validacion['motivo'] ?? 'La hora de expiración es anterior a la hora de la BD.'
-				;
 
 			// Enviamos toda la información de depuración
 			echo json_encode([
@@ -140,7 +133,6 @@ $mensaje.=
 		$colores = ['Azul', 'Verde', 'Rojo', 'Amarillo', 'Naranja', 'Morado'];
 		$color_aleatorio = $colores[array_rand($colores)];
 
-		// **CORRECCIÓN:** Se verifica si la clave visual se guardó correctamente
 		if (!$this->invitacionModel->guardarClaveVisual($invitacion->id, $categoria_aleatoria, $imagen_aleatoria, $color_aleatorio)) {
 			echo json_encode(['exito' => false, 'mensaje' => 'Error al preparar el desafío de verificación. Inténtalo de nuevo.']);
 			return;
@@ -148,13 +140,11 @@ $mensaje.=
 
 		$contacto = $this->contactoModel->obtenerPorId($invitacion->id_contacto);
 
-		// **CORRECCIÓN:** Se verifica si el correo con la clave visual fue enviado
 		if (!$this->_enviarCorreoClaveVisual($contacto->email, $contacto->nombre, $imagen_aleatoria, $color_aleatorio)) {
 			echo json_encode(['exito' => false, 'mensaje' => 'No pudimos enviar la clave visual a tu correo. Verifica que tu email sea correcto e inténtalo de nuevo.']);
 			return;
 		}
 
-		// Si todo fue exitoso, se envía la respuesta para redirigir al usuario
 		echo json_encode([
 			'exito' => true,
 			'mensaje' => 'Verificación inicial correcta. Revisa tu correo para obtener tu clave visual y completar el registro.',
@@ -315,12 +305,14 @@ $mensaje.=
 
 				$this->mailService->enviarEmail($email, $nombre, $asunto, $cuerpoHtml);
 
-				$this . vista('asistencia/registro_exitoso');
+				// CORRECCIÓN DE SINTAXIS
+				$this->vista('asistencia/registro_exitoso');
 			} else {
 				die('Hubo un error al registrar el contacto. Es posible que el correo ya esté en uso.');
 			}
 		} else {
-			$this . redireccionar('');
+			// CORRECCIÓN DE SINTAXIS
+			$this->redireccionar('');
 		}
 	}
 
@@ -342,7 +334,6 @@ $mensaje.=
 	{
 		$asunto = "Tu Clave Visual para el Evento";
 		$cuerpoHtml = "<p>Hola {$nombre},</p><p>Para completar tu registro de asistencia, selecciona la imagen de un <strong>" . substr($imagen, 0, -4) . "</strong> y el color <strong>{$color}</strong>.</p><p>Este código es de un solo uso.</p>";
-		// **CORRECCIÓN:** Devolver el resultado del envío del correo
 		return $this->mailService->enviarEmail($email, $nombre, $asunto, $cuerpoHtml);
 	}
 }
