@@ -17,4 +17,4 @@ jobs:
         server: ${{ secrets.HOST_NAME }}
         username: ${{ secrets.USER_NAME }}
         password: ${{ secrets.PASS }}
-        server-dir: vocatorid/ 
+        server-dir: / 
