@@ -28,4 +28,6 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
-/core/config/
+/core/config/config.php
+/core/config/conn.php
+/core/config/router.php

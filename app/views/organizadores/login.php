@@ -1,7 +1,4 @@
-<?php
-// El header se carga automáticamente desde el controlador.
-// Solo nos enfocamos en el contenido específico de esta página.
-?>
+
 
 <div class="container container-main d-flex align-items-center">
 	<div class="w-100" style="max-width: 450px; margin: auto;">
@@ -68,6 +65,3 @@
 	</div>
 </div>
 
-<?php
-// El footer se carga automáticamente desde el controlador.
-?>
