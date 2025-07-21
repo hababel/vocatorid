@@ -81,7 +81,7 @@ $invitacion = $datos['invitacion'];
 				</div>
 			</div>
 
-			<div id="error-view" style="display: none;">
+			<div id="error-view">
 				<div class="alert alert-danger text-center p-4">
 					<i class="bi bi-x-circle-fill status-icon"></i>
 					<h4 class="alert-heading mt-2">Error en la Verificación</h4>
@@ -89,7 +89,7 @@ $invitacion = $datos['invitacion'];
 					<button id="retry-button" class="btn btn-danger mt-3">Intentar de Nuevo</button>
 				</div>
 
-				<div id="debug-panel" class="p-3 rounded mt-3" style="display: block;">
+				<div id="debug-panel" class="p-3 rounded mt-3">
 					<h5><i class="bi bi-bug-fill"></i> Información de Depuración</h5>
 					<ul class="list-unstyled mb-0">
 						<li><strong>Hora Servidor (PHP):</strong> <code id="debug-php-time"></code></li>

@@ -96,7 +96,7 @@ class AsistenciaController extends Controller
 
 		if (!$resultado_validacion['valido']) {
 			$mensaje = 'El código QR ya no es válido o no corresponde al evento. '
-				. 'Obtén un nuevo código desde el kiosco y vuelve a intentarlo.';
+				. 'Obtén un nuevo código desde el kiosco y vuelve a intentarlo.'. $resultado_validacion['valido'];
 
 			// Enviamos toda la información de depuración
 			echo json_encode([
