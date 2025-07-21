@@ -39,7 +39,6 @@ $invitacion = $datos['invitacion'];
 		font-size: 3rem;
 	}
 
-	/* NUEVO: Estilos para el panel de depuración */
 	#debug-panel {
 		text-align: left;
 		font-size: 0.8rem;
@@ -52,7 +51,7 @@ $invitacion = $datos['invitacion'];
 	}
 </style>
 
-<div class="container container-main d-flex align-items-center" x-data="verificacionHandler()" x-init="init()">
+<div class="container container-main d-flex align-items-center">
 	<div class="w-100" style="max-width: 600px; margin: auto;">
 
 		<div class="text-center mb-4">
@@ -61,18 +60,20 @@ $invitacion = $datos['invitacion'];
 		</div>
 
 		<div>
-			<div id="qr-reader-container" class="mb-3" x-show="estado === 'escaneando'">
-				<div id="qr-reader">
-					<div id="qr-reader-placeholder">
-						<div class="text-center">
-							<div class="spinner-border spinner-border-sm mb-2" role="status"></div>
-							<div>Iniciando cámara...</div>
+			<div id="scanner-view" class="mb-3">
+				<div id="qr-reader-container">
+					<div id="qr-reader">
+						<div id="qr-reader-placeholder">
+							<div class="text-center">
+								<div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+								<div>Iniciando cámara...</div>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div id="processing-state" x-show="estado === 'procesando'">
+			<div id="processing-view" style="display: none;">
 				<div class="alert alert-info text-center p-4">
 					<div class="spinner-border mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
 					<h4 class="alert-heading">Verificando...</h4>
@@ -80,12 +81,12 @@ $invitacion = $datos['invitacion'];
 				</div>
 			</div>
 
-			<div id="error-state" x-show="estado === 'error'">
+			<div id="error-view" style="display: none;">
 				<div class="alert alert-danger text-center p-4">
 					<i class="bi bi-x-circle-fill status-icon"></i>
 					<h4 class="alert-heading mt-2">Error en la Verificación</h4>
-					<p class="mb-0" x-text="mensaje"></p>
-					<button @click="reiniciar()" class="btn btn-danger mt-3">Intentar de Nuevo</button>
+					<p class="mb-0" id="error-message"></p>
+					<button id="retry-button" class="btn btn-danger mt-3">Intentar de Nuevo</button>
 				</div>
 
 				<div id="debug-panel" class="p-3 rounded mt-3" style="display: none;">
@@ -104,108 +105,118 @@ $invitacion = $datos['invitacion'];
 </div>
 
 <script>
-	function verificacionHandler() {
-		return {
-			estado: 'inicial', // inicial, escaneando, procesando, error
-			mensaje: '',
-			coordenadas: null,
-			html5QrCode: null,
+	document.addEventListener('DOMContentLoaded', function() {
+		const scannerView = document.getElementById('scanner-view');
+		const processingView = document.getElementById('processing-view');
+		const errorView = document.getElementById('error-view');
+		const errorMessageElem = document.getElementById('error-message');
+		const retryButton = document.getElementById('retry-button');
 
-			init() {
-				this.estado = 'escaneando';
-				this.iniciarScanner();
-			},
+		let html5QrCode;
+		let isProcessing = false;
 
-			iniciarScanner() {
-				const qrPlaceholder = document.getElementById('qr-reader-placeholder');
+		// Función para cambiar la vista visible
+		function setView(viewName) {
+			scannerView.style.display = 'none';
+			processingView.style.display = 'none';
+			errorView.style.display = 'none';
+			document.getElementById(viewName).style.display = 'block';
+		}
 
-				this.html5QrCode = new Html5Qrcode("qr-reader");
-				const config = {
-					fps: 10,
-					qrbox: {
-						width: 250,
-						height: 250
-					}
-				};
+		// Función para mostrar el panel de depuración
+		function showDebugInfo(debugInfo) {
+			if (!debugInfo) return;
 
-				this.html5QrCode.start({
-						facingMode: "environment"
-					}, config,
-					(decodedText, decodedResult) => {
-						// Evita escanear el mismo código múltiples veces seguidas
-						if (this.estado === 'procesando') return;
-						this.html5QrCode.pause();
-						this.procesarVerificacion(decodedText);
-					},
-					(errorMessage) => {
-						/* ignora errores de "QR no encontrado" */ }
-				).catch(err => {
-					this.mostrarError("No se pudo iniciar la cámara. Asegúrate de dar los permisos necesarios.");
+			const panel = document.getElementById('debug-panel');
+			document.getElementById('debug-php-time').textContent = debugInfo.hora_actual_servidor_php;
+			document.getElementById('debug-db-time').textContent = debugInfo.hora_actual_base_de_datos;
+			document.getElementById('debug-token-time').textContent = debugInfo.hora_expiracion_del_token;
+
+			const expDate = new Date(debugInfo.hora_expiracion_del_token.replace(/-/g, '/')); // Corregir formato para compatibilidad
+			const dbDate = new Date(debugInfo.hora_actual_base_de_datos.replace(/-/g, '/'));
+
+			if (isNaN(expDate.getTime()) || isNaN(dbDate.getTime())) {
+				document.getElementById('debug-resultado').innerHTML = '<span class="badge bg-warning">No se pudo comparar</span>';
+			} else if (expDate > dbDate) {
+				document.getElementById('debug-resultado').innerHTML = '<span class="badge bg-success">VÁLIDO LÓGICAMENTE</span>';
+			} else {
+				document.getElementById('debug-resultado').innerHTML = '<span class="badge bg-danger">INVÁLIDO</span> (Expiración <= Hora DB)';
+			}
+			panel.style.display = 'block';
+		}
+
+		// Función para manejar errores
+		function handleError(message, debugInfo = null) {
+			setView('error-view');
+			errorMessageElem.textContent = message;
+			if (html5QrCode && html5QrCode.isScanning) {
+				html5QrCode.stop();
+			}
+			showDebugInfo(debugInfo);
+		}
+
+		// Función que se llama cuando se escanea un QR
+		async function onScanSuccess(decodedText, decodedResult) {
+			if (isProcessing) return;
+			isProcessing = true;
+
+			if (html5QrCode.isScanning) {
+				await html5QrCode.stop();
+			}
+
+			setView('processing-view');
+
+			const formData = new FormData();
+			formData.append('token_acceso', '<?php echo $invitacion->token_acceso; ?>');
+			formData.append('token_dinamico', decodedText);
+
+			try {
+				const response = await fetch('<?php echo URL_PATH; ?>asistencia/procesarVerificacion', {
+					method: 'POST',
+					body: formData
 				});
-			},
+				const data = await response.json();
 
-			async procesarVerificacion(tokenDinamico) {
-				this.estado = 'procesando';
-
-				const formData = new FormData();
-				formData.append('token_acceso', '<?php echo $invitacion->token_acceso; ?>');
-				formData.append('token_dinamico', tokenDinamico);
-
-				try {
-					const response = await fetch('<?php echo URL_PATH; ?>asistencia/procesarVerificacion', {
-						method: 'POST',
-						body: formData
-					});
-
-					const data = await response.json();
-
-					if (data.exito) {
-						if (data.siguiente_paso) {
-							window.location.href = data.siguiente_paso;
-						} else if (data.completado) {
-							window.location.reload();
-						}
-					} else {
-						this.mostrarError(data.mensaje, data.debug_info || null);
-					}
-
-				} catch (error) {
-					this.mostrarError('Error de conexión con el servidor.');
+				if (data.exito) {
+					if (data.siguiente_paso) window.location.href = data.siguiente_paso;
+					else if (data.completado) window.location.reload();
+				} else {
+					handleError(data.mensaje, data.debug_info || null);
 				}
-			},
-
-			mostrarError(msg, debugInfo = null) {
-				this.estado = 'error';
-				this.mensaje = msg;
-
-				if (this.html5QrCode && this.html5QrCode.isScanning) {
-					this.html5QrCode.stop().catch(err => console.error("Error al detener el escáner.", err));
-				}
-
-				if (debugInfo) {
-					const panel = document.getElementById('debug-panel');
-					document.getElementById('debug-php-time').textContent = debugInfo.hora_actual_servidor_php;
-					document.getElementById('debug-db-time').textContent = debugInfo.hora_actual_base_de_datos;
-					document.getElementById('debug-token-time').textContent = debugInfo.hora_expiracion_del_token;
-
-					const expDate = new Date(debugInfo.hora_expiracion_del_token);
-					const dbDate = new Date(debugInfo.hora_actual_base_de_datos);
-
-					if (isNaN(expDate.getTime()) || isNaN(dbDate.getTime())) {
-						document.getElementById('debug-resultado').innerHTML = '<span class="badge bg-warning">No se pudo comparar</span>';
-					} else if (expDate > dbDate) {
-						document.getElementById('debug-resultado').innerHTML = '<span class="badge bg-success">VÁLIDO LÓGICAMENTE</span>';
-					} else {
-						document.getElementById('debug-resultado').innerHTML = '<span class="badge bg-danger">INVÁLIDO</span> (Expiración <= Hora DB)';
-					}
-
-					panel.style.display = 'block';
-				}
-			},
-
-			reiniciar() {
-				window.location.reload();
+			} catch (error) {
+				handleError('Error de conexión. Revisa tu conexión a internet.');
+			} finally {
+				isProcessing = false;
 			}
 		}
-	}
+
+		// Función para inicializar el escáner
+		function startScanner() {
+			setView('scanner-view');
+			html5QrCode = new Html5Qrcode("qr-reader");
+			const config = {
+				fps: 10,
+				qrbox: {
+					width: 250,
+					height: 250
+				},
+				supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+			};
+
+			html5QrCode.start({
+					facingMode: "environment"
+				}, config, onScanSuccess)
+				.catch(err => {
+					handleError("No se pudo iniciar la cámara. Por favor, otorga los permisos necesarios y recarga la página.");
+				});
+		}
+
+		// Event listener para el botón de reintentar
+		retryButton.addEventListener('click', () => {
+			window.location.reload();
+		});
+
+		// Iniciar todo el proceso
+		startScanner();
+	});
 </script>
