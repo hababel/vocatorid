@@ -97,13 +97,13 @@ class AsistenciaController extends Controller
 		if (!$resultado_validacion['valido']) {
 			$mensaje = 'El código QR ya no es válido o no corresponde al evento. '
 				. 'Obtén un nuevo código desde el kiosco y vuelve a intentarlo.';
-$mensaje.=[
-					'validacion_fallida' => true,
-					'hora_actual_servidor_php' => $hora_actual_php,
-					'hora_expiracion_del_token' => $resultado_validacion['fecha_expiracion_token'] ?? 'No encontrado',
-					'hora_actual_base_de_datos' => $resultado_validacion['hora_actual_db'] ?? 'No disponible',
-					'motivo_del_fallo' => $resultado_validacion['motivo'] ?? 'La hora de expiración es anterior a la hora de la BD.'
-				];
+$mensaje.=
+					'validacion_fallida'.true."<br>".
+					'hora_actual_servidor_php' .$hora_actual_php."<br>".
+					'hora_expiracion_del_token' .$resultado_validacion['fecha_expiracion_token'] ?? 'No encontrado'."<br>".
+					'hora_actual_base_de_datos' . $resultado_validacion['hora_actual_db'] ?? 'No disponible'."<br>".
+					'motivo_del_fallo' . $resultado_validacion['motivo'] ?? 'La hora de expiración es anterior a la hora de la BD.'
+				;
 
 			// Enviamos toda la información de depuración
 			echo json_encode([
