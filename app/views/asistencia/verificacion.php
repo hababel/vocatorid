@@ -197,8 +197,8 @@ $invitacion = $datos['invitacion'];
 			const config = {
 				fps: 10,
 				qrbox: {
-					width: 250,
-					height: 250
+					width: 230,
+					height: 230
 				},
 				supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
 			};
