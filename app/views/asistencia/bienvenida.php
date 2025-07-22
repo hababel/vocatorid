@@ -1,5 +1,5 @@
 <?php
-// El header.php se carga automáticamente desde el controlador.
+
 $evento = $datos['evento'];
 $invitacion = $datos['invitacion'];
 ?>
@@ -40,6 +40,7 @@ $invitacion = $datos['invitacion'];
 			unset($_SESSION['mensaje']);
 		}
 		?>
+
 		<div class="card shadow-sm event-card mb-4">
 			<div class="card-body p-4">
 				<h3 class="card-title h4"><?php echo htmlspecialchars($evento->nombre_evento); ?></h3>
@@ -68,8 +69,12 @@ $invitacion = $datos['invitacion'];
 		<?php else: ?>
 			<div class="text-center">
 				<p>Para completar el proceso, necesitarás escanear el código QR que se mostrará en la pantalla del evento.</p>
-				<p><strong>Asegúrate de estar en el lugar del evento y tener activado el GPS de tu dispositivo.</strong></p>
 
+				<?php if ($evento->modo == 'Presencial'): ?>
+					<p><strong>Asegúrate de estar en el lugar del evento y tener activado el GPS de tu dispositivo.</strong></p>
+				<?php elseif ($evento->modo == 'Hibrido'): ?>
+					<p><strong>Si asistes de forma presencial, asegúrate de estar en el lugar del evento y tener activado el GPS de tu dispositivo.</strong></p>
+				<?php endif; ?>
 				<a href="<?php echo URL_PATH; ?>asistencia/iniciarVerificacion/<?php echo $invitacion->token_acceso; ?>" class="btn btn-primary btn-lg mt-3">
 					<i class="bi bi-qr-code-scan me-2"></i> Iniciar Registro de Asistencia
 				</a>
