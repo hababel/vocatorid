@@ -18,6 +18,28 @@ $invitacion = $datos['invitacion'];
 			<p class="lead text-muted">Estás a punto de registrar tu asistencia para el evento:</p>
 		</div>
 
+		<?php
+		if (session_status() === PHP_SESSION_NONE) {
+			session_start();
+		}
+		if (isset($_SESSION['mensaje'])) {
+			$tipo_alerta = 'alert-info';
+			$icono = 'bi-info-circle-fill';
+			if ($_SESSION['mensaje']['tipo'] === 'exito') {
+				$tipo_alerta = 'alert-success';
+				$icono = 'bi-check-circle-fill';
+			}
+			if ($_SESSION['mensaje']['tipo'] === 'error') {
+				$tipo_alerta = 'alert-danger';
+				$icono = 'bi-exclamation-triangle-fill';
+			}
+			echo '<div class="alert ' . $tipo_alerta . ' text-center d-flex align-items-center" role="alert">';
+			echo '<i class="bi ' . $icono . ' me-2"></i>';
+			echo '<div>' . htmlspecialchars($_SESSION['mensaje']['texto']) . '</div>';
+			echo '</div>';
+			unset($_SESSION['mensaje']);
+		}
+		?>
 		<div class="card shadow-sm event-card mb-4">
 			<div class="card-body p-4">
 				<h3 class="card-title h4"><?php echo htmlspecialchars($evento->nombre_evento); ?></h3>
@@ -56,7 +78,3 @@ $invitacion = $datos['invitacion'];
 
 	</div>
 </div>
-
-<?php
-// El footer.php se carga automáticamente desde el controlador.
-?>

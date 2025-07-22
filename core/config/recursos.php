@@ -93,7 +93,7 @@ function obtenerRecursosClaveVisual()
 			'Naranja.jpg',
 			'Uvas.jpg',
 			'Limon.jpg',
-			'piña.jpg'
+			'Pina.jpg'
 		],
 		'figuras' => [
 			'Circulo.jpg',
