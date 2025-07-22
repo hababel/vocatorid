@@ -111,7 +111,6 @@ class AsistenciaController extends Controller
 		$categoria_aleatoria = array_rand($recursos);
 		$imagen_aleatoria = $recursos[$categoria_aleatoria][array_rand($recursos[$categoria_aleatoria])];
 
-		// CORRECCIÓN: Nombres de colores en inglés
 		$colores = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple'];
 		$color_aleatorio = $colores[array_rand($colores)];
 
@@ -145,7 +144,6 @@ class AsistenciaController extends Controller
 		$opciones_imagenes = $recursos[$invitacion->clave_visual_tipo];
 		shuffle($opciones_imagenes);
 
-		// CORRECCIÓN: Nombres de colores en inglés
 		$opciones_colores = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple'];
 		shuffle($opciones_colores);
 
@@ -313,8 +311,25 @@ class AsistenciaController extends Controller
 
 	private function _enviarCorreoClaveVisual($email, $nombre, $imagen, $color)
 	{
+		// ======================================================
+		//                INICIO DE LA CORRECCIÓN
+		// ======================================================
+		// El color llega en inglés (ej: "Blue"), lo traducimos a español para el correo.
+		$traductor_colores_es = [
+			'Blue'   => 'Azul',
+			'Green'  => 'Verde',
+			'Red'    => 'Rojo',
+			'Yellow' => 'Amarillo',
+			'Orange' => 'Naranja',
+			'Purple' => 'Morado'
+		];
+		// Si el color no está en el traductor, se usa el original en inglés como respaldo.
+		$color_para_correo = $traductor_colores_es[$color] ?? $color;
+		// ======================================================
+
 		$asunto = "Tu Clave Visual para el Evento";
-		$cuerpoHtml = "<p>Hola {$nombre},</p><p>Para completar tu registro de asistencia, selecciona la imagen de un <strong>" . substr($imagen, 0, -4) . "</strong> y el color <strong>{$color}</strong>.</p><p>Este código es de un solo uso.</p>";
+		// Usamos la variable traducida en el cuerpo del correo.
+		$cuerpoHtml = "<p>Hola {$nombre},</p><p>Para completar tu registro de asistencia, selecciona la imagen de un <strong>" . substr($imagen, 0, -4) . "</strong> y el color <strong>{$color_para_correo}</strong>.</p><p>Este código es de un solo uso.</p>";
 		return $this->mailService->enviarEmail($email, $nombre, $asunto, $cuerpoHtml);
 	}
 }
