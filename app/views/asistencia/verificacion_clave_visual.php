@@ -50,7 +50,7 @@ $opciones_colores = $datos['opciones_colores'];
 					<div class="row g-3 justify-content-center mb-4">
 						<?php foreach ($opciones_imagenes as $img): ?>
 							<div class="col-4 col-md-3">
-								<img src="<?php echo URL_PATH; ?>public/img/clave_visual/<?php echo $invitacion->clave_visual_tipo . '/' . $img; ?>"
+								<img src="<?php echo URL_PATH; ?>core/img/clave_visual/<?php echo $invitacion->clave_visual_tipo . '/' . $img; ?>"
 									class="img-fluid clave-option-img"
 									:class="{ 'selected': selectedImage === '<?php echo $img; ?>' }"
 									@click="selectedImage = '<?php echo $img; ?>'">

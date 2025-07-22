@@ -80,30 +80,28 @@ function obtenerRecursosClaveVisual()
 {
 	return [
 		'animales' => [
-			'leon.png',
-			'tigre.png',
-			'aguila.png',
-			'oso.png',
-			'lobo.png',
-			'ciervo.png',
-			'zorro.png',
-			'elefante.png'
+			'Gato.jpeg',
+			'Leon.jpg',
+			'Oso.jpeg',
+			'Perro.jpeg',
+			'Caballo.jpeg',
+			'Tigre.jpeg'
 		],
 		'frutas' => [
-			'manzana.png',
-			'banano.png',
-			'naranja.png',
-			'uva.png',
-			'fresa.png',
-			'piña.png'
+			'Manzana.jpg',
+			'Banano.jpg',
+			'Naranja.jpg',
+			'Uvas.jpg',
+			'Limon.jpg',
+			'piña.jpg'
 		],
 		'figuras' => [
-			'circulo.png',
-			'cuadrado.png',
-			'triangulo.png',
-			'estrella.png',
-			'corazon.png',
-			'hexagono.png'
+			'Circulo.jpg',
+			'Cuadrado.jpg',
+			'Triangulo.jpg',
+			'Estrella.jpg',
+			'Corazon.jpg',
+			'Hexagono.jpg'
 		]
 		// Se pueden añadir más categorías aquí en el futuro.
 	];
