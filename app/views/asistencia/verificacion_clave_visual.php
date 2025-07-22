@@ -21,9 +21,10 @@ $opciones_colores = $datos['opciones_colores'];
 		box-shadow: 0 0 15px rgba(13, 110, 253, 0.5);
 	}
 
+	/* CORRECCIÓN: Botones cuadrados y más pequeños */
 	.color-btn {
-		width: 60px;
-		height: 60px;
+		width: 50px;
+		height: 50px;
 		border: 4px solid transparent;
 		transition: all 0.2s ease-in-out;
 	}
@@ -61,8 +62,10 @@ $opciones_colores = $datos['opciones_colores'];
 					<h5 class="text-center">2. Selecciona el Color Correcto</h5>
 					<div class="d-flex justify-content-center gap-3 mb-4">
 						<?php foreach ($opciones_colores as $color): ?>
-							<button type="button" class="btn color-btn rounded-circle"
-								style="background-color: <?php echo strtolower($color); ?>"
+							<?php // CORRECCIÓN: Se elimina el 'rounded-circle' para que sea un botón cuadrado (pequeño) 
+							?>
+							<button type="button" class="btn color-btn"
+								style="background-color: <?php echo strtolower($color); ?>;"
 								:class="{ 'selected': selectedColor === '<?php echo $color; ?>' }"
 								@click="selectedColor = '<?php echo $color; ?>'"></button>
 						<?php endforeach; ?>

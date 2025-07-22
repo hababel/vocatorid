@@ -111,7 +111,8 @@ class AsistenciaController extends Controller
 		$categoria_aleatoria = array_rand($recursos);
 		$imagen_aleatoria = $recursos[$categoria_aleatoria][array_rand($recursos[$categoria_aleatoria])];
 
-		$colores = ['Azul', 'Verde', 'Rojo', 'Amarillo', 'Naranja', 'Morado'];
+		// CORRECCIÓN: Nombres de colores en inglés
+		$colores = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple'];
 		$color_aleatorio = $colores[array_rand($colores)];
 
 		if (!$this->invitacionModel->guardarClaveVisual($invitacion->id, $categoria_aleatoria, $imagen_aleatoria, $color_aleatorio)) {
@@ -144,7 +145,8 @@ class AsistenciaController extends Controller
 		$opciones_imagenes = $recursos[$invitacion->clave_visual_tipo];
 		shuffle($opciones_imagenes);
 
-		$opciones_colores = ['Azul', 'Verde', 'Rojo', 'Amarillo', 'Naranja', 'Morado'];
+		// CORRECCIÓN: Nombres de colores en inglés
+		$opciones_colores = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple'];
 		shuffle($opciones_colores);
 
 		$datos = [
