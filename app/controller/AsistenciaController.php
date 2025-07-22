@@ -163,7 +163,7 @@ class AsistenciaController extends Controller
 		$opciones_imagenes = $recursos[$invitacion->clave_visual_tipo];
 		shuffle($opciones_imagenes);
 
-		$opciones_colores = ['Azul', 'Verde', 'Rojo', 'Amarillo', 'Naranja', 'Morado'];
+		$opciones_colores = ['blue', 'green', 'red', 'yellow', 'orange', 'purple'];
 		shuffle($opciones_colores);
 
 		$datos = [
