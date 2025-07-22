@@ -99,17 +99,51 @@ $evento = $datos['evento'];
 		text-shadow: 0 0 10px rgba(13, 202, 240, 0.5);
 	}
 
-	.progress {
-		height: 4px;
-		background-color: rgba(255, 255, 255, 0.1);
-		border-radius: 4px;
+	.progress-container {
+		display: flex;
+		align-items: center;
+		gap: 15px;
 		margin-top: 2rem;
 	}
 
-	.progress-bar {
-		background-color: #0dcaf0;
-		transition: width 1s linear !important;
-		border-radius: 4px;
+	.progress {
+		flex-grow: 1;
+		height: 8px;
+		background-color: rgba(255, 255, 255, 0.1);
+		border-radius: 8px;
+		overflow: hidden;
+	}
+
+	/* Esta clase ahora se aplica al div interior con id="progress-bar" */
+	#progress-bar {
+		transition: background-color 0.5s ease, width 0.2s ease !important;
+		border-radius: 8px;
+	}
+
+	.progress-bar-white {
+		background-color: #f8f9fa;
+	}
+
+	.progress-bar-yellow {
+		background-color: #ffc107;
+	}
+
+
+	#minutos-restantes {
+		font-family: 'Share Tech Mono', monospace;
+		font-size: 1.2rem;
+		color: #adb5bd;
+		flex-shrink: 0;
+	}
+
+	@keyframes blink-animation {
+		50% {
+			opacity: 0.2;
+		}
+	}
+
+	.blinking-bar {
+		animation: blink-animation 1s infinite;
 	}
 
 	.event-title {
@@ -144,8 +178,11 @@ $evento = $datos['evento'];
 			<p class="text-muted mt-4">O ingresa el código:</p>
 			<div id="codigo-texto" class="codigo-texto">CARGANDO...</div>
 
-			<div class="progress">
-				<div id="progress-bar" class="progress-bar" role="progressbar" style="width: 100%"></div>
+			<div class="progress-container">
+				<div class="progress">
+					<div id="progress-bar" class="progress" role="progressbar" style="width: 100%"></div>
+				</div>
+				<div id="minutos-restantes">--:--</div>
 			</div>
 
 			<div class="event-details mt-3">
@@ -159,16 +196,15 @@ $evento = $datos['evento'];
 
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
-			// Referencias a los elementos del DOM
 			const qrContainer = document.getElementById('qrcode');
 			const codigoTextoElem = document.getElementById('codigo-texto');
 			const progressBar = document.getElementById('progress-bar');
+			const minutosRestantesElem = document.getElementById('minutos-restantes');
 			let countdownInterval = null;
 
-			// Función para generar el código QR
 			function generarQrCode(texto) {
 				if (qrContainer) {
-					qrContainer.innerHTML = ''; // Limpia el QR anterior
+					qrContainer.innerHTML = '';
 					new QRCode(qrContainer, {
 						text: texto,
 						width: 220,
@@ -180,31 +216,55 @@ $evento = $datos['evento'];
 				}
 			}
 
-			// Función para iniciar el temporizador
 			function iniciarContador(duracion) {
 				clearInterval(countdownInterval);
-				let segundos = duracion;
-				progressBar.style.width = '100%';
+				progressBar.classList.remove('blinking-bar', 'progress-bar-white', 'progress-bar-yellow');
 
-				countdownInterval = setInterval(() => {
-					segundos--;
-					const progreso = (segundos / duracion) * 100;
+				let segundosRestantes = duracion;
+
+				function actualizarVista() {
+					const minutos = Math.floor(segundosRestantes / 60);
+					const segundos = segundosRestantes % 60;
+					minutosRestantesElem.textContent = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+
+					const progreso = (segundosRestantes / duracion) * 100;
 					progressBar.style.width = progreso + '%';
 
-					if (segundos <= 0) {
+					const bloqueActual = Math.floor((duracion - segundosRestantes) / 5);
+					if (bloqueActual % 2 === 0) {
+						progressBar.classList.remove('progress-bar-yellow');
+						progressBar.classList.add('progress-bar-white');
+					} else {
+						progressBar.classList.remove('progress-bar-white');
+						progressBar.classList.add('progress-bar-yellow');
+					}
+
+					// CORRECCIÓN: Titilar a los 10 segundos
+					if (segundosRestantes <= 10) {
+						progressBar.classList.add('blinking-bar');
+					} else {
+						progressBar.classList.remove('blinking-bar');
+					}
+				}
+
+				actualizarVista();
+
+				countdownInterval = setInterval(() => {
+					segundosRestantes--;
+					actualizarVista();
+
+					if (segundosRestantes < 0) {
 						clearInterval(countdownInterval);
-						actualizarToken(); // Llama a actualizar cuando el tiempo termina
+						actualizarToken();
 					}
 				}, 1000);
 			}
 
-			// Función principal para obtener y mostrar el token
 			async function actualizarToken() {
 				try {
 					const response = await fetch('<?php echo URL_PATH; ?>evento/generarTokenKiosco/<?php echo $evento->id; ?>');
-					if (!response.ok) {
-						throw new Error('Error de red o del servidor');
-					}
+					if (!response.ok) throw new Error('Error de red');
+
 					const data = await response.json();
 
 					if (data.exito && data.token) {
@@ -222,7 +282,6 @@ $evento = $datos['evento'];
 				}
 			}
 
-			// Iniciar el proceso por primera vez
 			actualizarToken();
 		});
 	</script>
