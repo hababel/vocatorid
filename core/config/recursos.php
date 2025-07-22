@@ -80,12 +80,12 @@ function obtenerRecursosClaveVisual()
 {
 	return [
 		'animales' => [
-			'Gato.jpeg',
+			'Gato.jpg',
 			'Leon.jpg',
-			'Oso.jpeg',
-			'Perro.jpeg',
-			'Caballo.jpeg',
-			'Tigre.jpeg'
+			'Oso.jpg',
+			'Perro.jpg',
+			'Caballo.jpg',
+			'Tigre.jpg'
 		],
 		'frutas' => [
 			'Manzana.jpg',
