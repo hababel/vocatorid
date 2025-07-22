@@ -160,6 +160,7 @@ class AsistenciaController extends Controller
 	{
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			$this->redireccionar('');
+			return;
 		}
 
 		$token_acceso = $_POST['token_acceso'];
@@ -169,17 +170,29 @@ class AsistenciaController extends Controller
 		$invitacion = $this->invitacionModel->obtenerPorToken($token_acceso);
 
 		if ($invitacion && $invitacion->clave_visual_valor === $imagen_seleccionada && $invitacion->clave_texto === $color_seleccionado) {
-
+			// Si la clave es correcta
 			if ($this->registroAsistenciaModel->crear($invitacion->id, 'Verificado por 3-FAV')) {
 				$this->invitacionModel->marcarAsistenciaVerificada($invitacion->id);
-				$this->crearMensaje('exito', '¡Asistencia registrada exitosamente!');
+
+				// CARGA LA NUEVA VISTA DE ÉXITO
+				$evento = $this->eventoModel->obtenerPorId($invitacion->id_evento);
+				$datos = [
+					'titulo' => 'Asistencia Confirmada',
+					'evento' => $evento
+				];
+				$this->vista('asistencia/registro_confirmado', $datos);
+				return; // Termina la ejecución aquí
+
 			} else {
-				$this->crearMensaje('info', 'Tu asistencia ya había sido registrada.');
+				// El usuario ya estaba registrado, redirige a bienvenida con mensaje
+				$this->crearMensaje('info', 'Tu asistencia ya había sido registrada anteriormente.');
 			}
 		} else {
-			$this->crearMensaje('error', 'Clave visual incorrecta. Por favor, inténtalo de nuevo.');
+			// La clave fue incorrecta, redirige a bienvenida con mensaje de error
+			$this->crearMensaje('error', 'La clave visual es incorrecta. Por favor, inténtalo de nuevo.');
 		}
 
+		// Redirige a bienvenida solo en caso de error o si ya estaba registrado
 		$this->redireccionar('asistencia/bienvenida/' . $token_acceso);
 	}
 
@@ -311,10 +324,6 @@ class AsistenciaController extends Controller
 
 	private function _enviarCorreoClaveVisual($email, $nombre, $imagen, $color)
 	{
-		// ======================================================
-		//                INICIO DE LA CORRECCIÓN
-		// ======================================================
-		// El color llega en inglés (ej: "Blue"), lo traducimos a español para el correo.
 		$traductor_colores_es = [
 			'Blue'   => 'Azul',
 			'Green'  => 'Verde',
@@ -323,12 +332,9 @@ class AsistenciaController extends Controller
 			'Orange' => 'Naranja',
 			'Purple' => 'Morado'
 		];
-		// Si el color no está en el traductor, se usa el original en inglés como respaldo.
 		$color_para_correo = $traductor_colores_es[$color] ?? $color;
-		// ======================================================
 
 		$asunto = "Tu Clave Visual para el Evento";
-		// Usamos la variable traducida en el cuerpo del correo.
 		$cuerpoHtml = "<p>Hola {$nombre},</p><p>Para completar tu registro de asistencia, selecciona la imagen de un <strong>" . substr($imagen, 0, -4) . "</strong> y el color <strong>{$color_para_correo}</strong>.</p><p>Este código es de un solo uso.</p>";
 		return $this->mailService->enviarEmail($email, $nombre, $asunto, $cuerpoHtml);
 	}
