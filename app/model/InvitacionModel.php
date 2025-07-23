@@ -48,9 +48,20 @@ class InvitacionModel extends Model
 		}
 	}
 
+	/**
+	 * ======================================================
+	 * CONSULTA MODIFICADA PARA OBTENER FECHA
+	 * ======================================================
+	 * Ahora, esta consulta también trae la fecha del check-in
+	 * desde la tabla de registros de asistencia.
+	 */
 	public function obtenerPorToken($token_acceso)
 	{
-		$sql = "SELECT * FROM invitaciones WHERE token_acceso = :token_acceso";
+		$sql = "SELECT i.*, ra.fecha_checkin 
+                FROM invitaciones i
+                LEFT JOIN registros_asistencia ra ON i.id = ra.id_invitacion
+                WHERE i.token_acceso = :token_acceso
+                ORDER BY ra.fecha_checkin DESC LIMIT 1";
 		try {
 			$stmt = $this->db->prepare($sql);
 			$stmt->bindParam(':token_acceso', $token_acceso);
