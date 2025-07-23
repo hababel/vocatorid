@@ -338,18 +338,22 @@ class InvitacionController extends Controller
 	private function _enviarCorreoInvitacion($contacto_o_invitacion, $evento, $token_acceso)
 	{
 		$asunto = "Tu Credencial para: " . $evento->nombre_evento;
+
+		// 1. Definir todas las variables que la plantilla necesita
+		$nombre_invitado = $contacto_o_invitacion->nombre;
+		$nombre_evento = $evento->nombre_evento;
 		$enlace_micrositio = URL_PATH . 'publico/evento/' . $evento->id;
 		$enlace_bienvenida = URL_PATH . 'asistencia/bienvenida/' . $token_acceso;
 		$enlace_confirmar = URL_PATH . 'invitacion/responder/' . $token_acceso . '/confirmar';
 		$enlace_rechazar = URL_PATH . 'invitacion/responder/' . $token_acceso . '/rechazar';
 		$qr_code_url = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" . urlencode($token_acceso);
 
-		// **CORRECCIÓN:** Se reintroduce el bloque de "Acceso al Evento" sin alterar la estructura original del correo.
-		$cuerpoHtml = '<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4;"><div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"><div style="background-color: #0d6efd; color: white; padding: 20px; text-align: center;"><h1 style="margin: 0; font-size: 24px;">Credencial de Invitado</h1></div><div style="padding: 30px;"><p style="font-size: 18px;">Hola <strong>' . htmlspecialchars($contacto_o_invitacion->nombre) . '</strong>,</p><p style="color: #555;">Has sido invitado al evento:</p><h2 style="margin: 10px 0; color: #333;">' . htmlspecialchars($evento->nombre_evento) . '</h2><div style="background-color: #f8f9fa; padding: 40px 20px; margin: 20px 0; text-align: center; border-radius: 5px;"><img src="' . $qr_code_url . '" alt="Tu Código QR Personal" style="max-width: 100%;"></div><p style="text-align: center; color: #555;">Presenta este código en el punto de registro para un acceso rápido.</p><div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px;"><h3 style="font-size: 16px; color: #333; text-align: center;">Confirma tu asistencia</h3><table width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding: 10px;"><a href="' . $enlace_confirmar . '" style="background-color: #198754; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block;">Sí, Asistiré</a></td><td align="center" style="padding: 10px;"><a href="' . $enlace_rechazar . '" style="background-color: #dc3545; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block;">No Puedo Asistir</a></td></tr></table></div>' .
-			'<div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px; text-align: center;"><h3 style="font-size: 16px; color: #333;">Acceso el Día del Evento</h3><p style="color: #555; font-size: 14px;">Usa el siguiente botón para registrar tu asistencia el día del evento. ¡Guarda este correo!</p><a href="' . $enlace_bienvenida . '" style="background-color: #0d6efd; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block;">Iniciar Registro de Asistencia</a></div>' .
-			'<div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px; text-align: center;"><p style="color: #555;">¿Quieres ver más detalles del evento?</p><a href="' . $enlace_micrositio . '" style="background-color: #0d6efd; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block;">Ver Micrositio del Evento</a></div></div><div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #6c757d;">Este es un correo automático. Por favor, no respondas a este mensaje.</div></div></body>';
+		// 2. Usar el búfer de salida de PHP para "renderizar" la plantilla en una variable
+		ob_start();
+		require APP_BASE_PHYSICAL_PATH . '/app/views/emails/plantilla_invitacion.php';
+		$cuerpoHtml = ob_get_clean();
 
-
+		// 3. Enviar el correo con el HTML generado
 		return $this->mailService->enviarEmail($contacto_o_invitacion->email, $contacto_o_invitacion->nombre, $asunto, $cuerpoHtml);
 	}
 
