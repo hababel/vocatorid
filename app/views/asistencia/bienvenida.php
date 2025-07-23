@@ -9,7 +9,6 @@ $invitacion = $datos['invitacion'];
 		border-left: 5px solid #0d6efd;
 	}
 
-	/* Estilos para el nuevo panel de confirmación */
 	.confirmation-panel {
 		background-color: #e6f9f0;
 		border-left: 5px solid #198754;
@@ -22,19 +21,26 @@ $invitacion = $datos['invitacion'];
 		margin-top: 1rem;
 	}
 
+	/* ====================================================== */
+	/* ESTILOS AJUSTADOS PARA LA IMAGEN Y COLOR      */
+	/* ====================================================== */
 	.clave-visual-summary img {
-		width: 50px;
-		height: 50px;
-		border-radius: .5rem;
-		border: 2px solid #ccc;
+		width: 30px;
+		/* Reducción a ~60% */
+		height: 30px;
+		border-radius: .3rem;
+		border: 1px solid #ccc;
 	}
 
 	.clave-visual-summary .color-box {
-		width: 50px;
-		height: 50px;
-		border-radius: .5rem;
-		border: 2px solid #ccc;
+		width: 30px;
+		/* Reducción a ~60% */
+		height: 30px;
+		border-radius: .3rem;
+		border: 1px solid #ccc;
 	}
+
+	/* ====================================================== */
 </style>
 
 <div class="container container-main d-flex align-items-center">
@@ -45,7 +51,20 @@ $invitacion = $datos['invitacion'];
 			session_start();
 		}
 		if (isset($_SESSION['mensaje'])) {
-			// ... (código de mensajes de sesión sin cambios)
+			$tipo_alerta = 'alert-info';
+			$icono = 'bi-info-circle-fill';
+			if ($_SESSION['mensaje']['tipo'] === 'exito') {
+				$tipo_alerta = 'alert-success';
+				$icono = 'bi-check-circle-fill';
+			}
+			if ($_SESSION['mensaje']['tipo'] === 'error') {
+				$tipo_alerta = 'alert-danger';
+				$icono = 'bi-exclamation-triangle-fill';
+			}
+			echo '<div class="alert ' . $tipo_alerta . ' text-center d-flex align-items-center" role="alert">';
+			echo '<i class="bi ' . $icono . ' me-2"></i>';
+			echo '<div>' . htmlspecialchars($_SESSION['mensaje']['texto']) . '</div>';
+			echo '</div>';
 			unset($_SESSION['mensaje']);
 		}
 		?>
@@ -67,10 +86,9 @@ $invitacion = $datos['invitacion'];
 						<ul class="list-unstyled">
 							<li><strong>Fecha y Hora:</strong> <?php echo date('d/m/Y h:i:s A', strtotime($invitacion->fecha_checkin)); ?></li>
 							<li class="mt-2"><strong>Clave Visual utilizada:</strong>
-								<div class="d-flex align-items-center mt-1">
+								<div class="d-flex align-items-center mt-1 clave-visual-summary">
 									<img src="<?php echo URL_PATH; ?>core/img/clave_visual/<?php echo $invitacion->clave_visual_tipo . '/' . $invitacion->clave_visual_valor; ?>" alt="Imagen Clave">
 									<div class="color-box ms-2" style="background-color: <?php echo strtolower($invitacion->clave_texto); ?>"></div>
-									<span class="ms-2">(<?php echo htmlspecialchars($invitacion->clave_texto); ?>)</span>
 								</div>
 							</li>
 							<li class="mt-2"><strong>Token de Acceso:</strong> <small><code title="<?php echo $invitacion->token_acceso; ?>"><?php echo substr($invitacion->token_acceso, 0, 8) . '...' . substr($invitacion->token_acceso, -8); ?></code></small></li>
@@ -123,4 +141,3 @@ $invitacion = $datos['invitacion'];
 		}
 	}
 </script>
-
