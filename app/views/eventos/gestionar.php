@@ -44,7 +44,7 @@ if ($total_enviados > 0 && $invitaciones_pendientes_de_envio == 0) {
 	if ($checklist['invitaciones_enviadas']) $puntuacion += 30;
 }
 
-// LÓGICA CORREGIDA PARA EL NUEVO GRÁFICO DE ASISTENCIA
+// LÓGICA PARA EL GRÁFICO DE ASISTENCIA Y PORCENTAJES
 $asistencia_completa_virtual = 0;
 $asistencia_completa_fisico = 0;
 $asistencia_iniciada = 0;
@@ -52,10 +52,9 @@ $asistencia_iniciada = 0;
 if (!empty($invitados)) {
 	foreach ($invitados as $invitado) {
 		if ($invitado->asistencia_verificada) {
-			// Se usa strpos para buscar una subcadena, es más robusto
-			if (strpos($invitado->metodo_checkin, '3-FAV') !== false) {
+			if ($invitado->metodo_checkin == '3FAV') {
 				$asistencia_completa_virtual++;
-			} elseif (strpos($invitado->metodo_checkin, 'Kiosco Físico') !== false) {
+			} else { // Asumimos que cualquier otro método es físico/manual
 				$asistencia_completa_fisico++;
 			}
 		} elseif (!empty($invitado->clave_visual_tipo)) {
@@ -63,7 +62,9 @@ if (!empty($invitados)) {
 		}
 	}
 }
-$asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asistencia_completa_fisico + $asistencia_iniciada);
+$total_registrados = $asistencia_completa_virtual + $asistencia_completa_fisico;
+$asistencia_pendiente = $total_invitados - ($total_registrados + $asistencia_iniciada);
+$porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_invitados) * 100 : 0;
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -327,6 +328,14 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 					<div class="card shadow-sm">
 						<div class="card-body">
 							<h5 class="card-title"><i class="bi bi-person-check-fill me-2"></i>Estado del Registro de Asistencia</h5>
+							<?php if ($total_registrados == $total_invitados && $total_invitados > 0): ?>
+								<div class="alert alert-success d-flex align-items-center" role="alert">
+									<i class="bi bi-star-fill me-2"></i>
+									<div>
+										<strong>¡Excelente!</strong> Todos los invitados han registrado su asistencia.
+									</div>
+								</div>
+							<?php endif; ?>
 							<div class="row align-items-center">
 								<div class="col-md-8">
 									<div id="asistenciaChartContainer" class="asistencia-chart-container">
@@ -351,11 +360,10 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 										<div class="summary-card border-success p-2 mb-2">
 											<div class="d-flex justify-content-between align-items-center">
 												<small class="text-muted">Asistencia Registrada</small>
-												<span class="fw-bold fs-5 text-success"><?php echo $asistencia_completa_virtual + $asistencia_completa_fisico; ?></span>
+												<span class="fw-bold fs-5 text-success"><?php echo $total_registrados; ?></span>
 											</div>
 										</div>
 									<?php endif; ?>
-
 									<div class="summary-card border-warning p-2 mb-2">
 										<div class="d-flex justify-content-between align-items-center">
 											<small class="text-muted">Proceso Iniciado</small>
@@ -370,10 +378,18 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 									</div>
 								</div>
 							</div>
+							<div class="card-footer bg-light text-center p-3 mt-3">
+								<p class="mb-0">
+									<span class="badge bg-primary"><?php echo $total_invitados; ?> Invitados (100%)</span>
+									<i class="bi bi-arrow-right-short"></i>
+									<span class="badge bg-success"><?php echo $total_registrados; ?> Registrados</span>
+									<i class="bi bi-arrow-right-short"></i>
+									<span class="badge bg-info text-dark">Eficiencia: <?php echo number_format($porcentaje_eficiencia, 1); ?>%</span>
+								</p>
+							</div>
 						</div>
 					</div>
 				</div>
-
 			</div>
 		</div>
 
