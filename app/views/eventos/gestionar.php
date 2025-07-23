@@ -384,7 +384,7 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 									<i class="bi bi-arrow-right-short"></i>
 									<span class="badge bg-success"><?php echo $total_registrados; ?> Registrados</span>
 									<i class="bi bi-arrow-right-short"></i>
-									<span class="badge bg-info text-dark">Eficiencia: <?php echo number_format($porcentaje_eficiencia, 1); ?>%</span>
+									<span class="badge bg-info text-dark">Eficiencia de Registro: <?php echo number_format($porcentaje_eficiencia, 1); ?>%</span>
 								</p>
 							</div>
 						</div>
@@ -517,7 +517,9 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 			asistenciaColors = ['#0d6efd', '#ffc107', '#dee2e6'];
 		}
 
-		if (asistenciaData.every(item => item === 0)) {
+		const totalAsistenciaData = asistenciaData.reduce((a, b) => a + b, 0);
+
+		if (totalAsistenciaData === 0) {
 			document.getElementById('asistenciaChartContainer').innerHTML = '<div class="text-center text-muted p-4 d-flex align-items-center justify-content-center h-100"><div><i class="bi bi-bar-chart-line fs-1"></i><p class="mt-2">Los datos de asistencia aparecerán aquí cuando los invitados comiencen el proceso de registro.</p></div></div>';
 		} else {
 			new Chart(ctxAsistencia, {
