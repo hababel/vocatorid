@@ -22,20 +22,20 @@ $invitacion = $datos['invitacion'];
 	}
 
 	/* ====================================================== */
-	/* ESTILOS AJUSTADOS PARA LA IMAGEN Y COLOR      */
+	/* ESTILOS AJUSTADOS CON EL AUMENTO DEL 40%               */
 	/* ====================================================== */
 	.clave-visual-summary img {
-		width: 30px;
-		/* Reducción a ~60% */
-		height: 30px;
+		width: 42px;
+		/* Aumento del 40% (de 30px a 42px) */
+		height: 42px;
 		border-radius: .3rem;
 		border: 1px solid #ccc;
 	}
 
 	.clave-visual-summary .color-box {
-		width: 30px;
-		/* Reducción a ~60% */
-		height: 30px;
+		width: 42px;
+		/* Aumento del 40% (de 30px a 42px) */
+		height: 42px;
 		border-radius: .3rem;
 		border: 1px solid #ccc;
 	}
