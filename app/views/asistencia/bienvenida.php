@@ -25,17 +25,17 @@ $invitacion = $datos['invitacion'];
 	/* AJUSTE FINAL DE TAMAÑOS SOLICITADO          */
 	/* ====================================================== */
 	.clave-visual-summary img {
-		width: 42px;
-		/* Imagen agrandada */
-		height: 42px;
+		width: 63px;
+		/* Aumento del 50% */
+		height: 63px;
 		border-radius: .3rem;
 		border: 1px solid #ccc;
 	}
 
 	.clave-visual-summary .color-box {
-		width: 30px;
-		/* Botón de color mantiene su tamaño */
-		height: 30px;
+		width: 39px;
+		/* Aumento del 30% */
+		height: 39px;
 		border-radius: .3rem;
 		border: 1px solid #ccc;
 	}
@@ -141,7 +141,3 @@ $invitacion = $datos['invitacion'];
 		}
 	}
 </script>
-
-<?php
-// El footer.php se carga automáticamente desde el controlador.
-?>
