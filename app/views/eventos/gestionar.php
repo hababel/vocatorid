@@ -43,6 +43,26 @@ if ($total_enviados > 0 && $invitaciones_pendientes_de_envio == 0) {
 	$checklist['invitaciones_enviadas'] = true;
 	if ($checklist['invitaciones_enviadas']) $puntuacion += 30;
 }
+
+// LÓGICA PARA EL NUEVO GRÁFICO DE ASISTENCIA
+$asistencia_completa_virtual = 0;
+$asistencia_completa_fisico = 0;
+$asistencia_iniciada = 0;
+
+if (!empty($invitados)) {
+	foreach ($invitados as $invitado) {
+		if ($invitado->asistencia_verificada) {
+			if ($invitado->metodo_checkin == '3FAV') {
+				$asistencia_completa_virtual++;
+			} else { // Asumimos que cualquier otro método es físico/manual
+				$asistencia_completa_fisico++;
+			}
+		} elseif (!empty($invitado->clave_visual_tipo)) {
+			$asistencia_iniciada++;
+		}
+	}
+}
+$asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asistencia_completa_fisico + $asistencia_iniciada);
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -297,6 +317,60 @@ if ($total_enviados > 0 && $invitaciones_pendientes_de_envio == 0) {
 					</div>
 				</div>
 			</div>
+			<div class="row g-4">
+
+				<div class="col-lg-12">
+					<div class="card shadow-sm">
+						<div class="card-body">
+							<h5 class="card-title"><i class="bi bi-person-check-fill me-2"></i>Estado del Registro de Asistencia</h5>
+							<div class="row align-items-center">
+								<div class="col-md-8">
+									<div id="asistenciaChartContainer" class="asistencia-chart-container">
+										<canvas id="asistenciaChart"></canvas>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<?php if ($evento->modo == 'Hibrido'): ?>
+										<div class="summary-card p-2 mb-2" style="border-color: #0d6efd;">
+											<div class="d-flex justify-content-between align-items-center">
+												<small class="text-muted">Virtual (3-FAV)</small>
+												<span class="fw-bold fs-5" style="color: #0d6efd;"><?php echo $asistencia_completa_virtual; ?></span>
+											</div>
+										</div>
+										<div class="summary-card p-2 mb-2" style="border-color: #6f42c1;">
+											<div class="d-flex justify-content-between align-items-center">
+												<small class="text-muted">Presencial (Kiosco)</small>
+												<span class="fw-bold fs-5" style="color: #6f42c1;"><?php echo $asistencia_completa_fisico; ?></span>
+											</div>
+										</div>
+									<?php else: ?>
+										<div class="summary-card border-success p-2 mb-2">
+											<div class="d-flex justify-content-between align-items-center">
+												<small class="text-muted">Asistencia Registrada</small>
+												<span class="fw-bold fs-5 text-success"><?php echo $asistencia_completa_virtual + $asistencia_completa_fisico; ?></span>
+											</div>
+										</div>
+									<?php endif; ?>
+
+									<div class="summary-card border-warning p-2 mb-2">
+										<div class="d-flex justify-content-between align-items-center">
+											<small class="text-muted">Proceso Iniciado</small>
+											<span class="fw-bold fs-5 text-warning"><?php echo $asistencia_iniciada; ?></span>
+										</div>
+									</div>
+									<div class="summary-card border-secondary p-2">
+										<div class="d-flex justify-content-between align-items-center">
+											<small class="text-muted">Pendientes por Registrar</small>
+											<span class="fw-bold fs-5"><?php echo $asistencia_pendiente; ?></span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
 		</div>
 
 		<div class="tab-pane fade" id="invitados" role="tabpanel" aria-labelledby="invitados-tab">
@@ -415,5 +489,63 @@ if ($total_enviados > 0 && $invitaciones_pendientes_de_envio == 0) {
 				bsAlert.close();
 			}, 8000);
 		}
+
+		// ======================================================
+		// SCRIPT PARA EL NUEVO GRÁFICO DE ASISTENCIA
+		// ======================================================
+		const ctxAsistencia = document.getElementById('asistenciaChart').getContext('2d');
+		const modoEvento = '<?php echo $evento->modo; ?>';
+
+		let asistenciaLabels = [];
+		let asistenciaData = [];
+		let asistenciaColors = [];
+
+		const totalVirtual = <?php echo $asistencia_completa_virtual; ?>;
+		const totalFisico = <?php echo $asistencia_completa_fisico; ?>;
+		const totalIniciado = <?php echo $asistencia_iniciada; ?>;
+		const totalPendiente = <?php echo $asistencia_pendiente; ?>;
+
+		if (modoEvento === 'Hibrido') {
+			asistenciaLabels = ['Virtual (3-FAV)', 'Presencial (Kiosco)', 'Proceso Iniciado', 'Pendientes por Registrar'];
+			asistenciaData = [totalVirtual, totalFisico, totalIniciado, totalPendiente];
+			asistenciaColors = ['#0d6efd', '#6f42c1', '#ffc107', '#dee2e6'];
+		} else if (modoEvento === 'Presencial') {
+			asistenciaLabels = ['Asistencia Registrada', 'Proceso Iniciado', 'Pendientes por Registrar'];
+			asistenciaData = [totalFisico, totalIniciado, totalPendiente];
+			asistenciaColors = ['#6f42c1', '#ffc107', '#dee2e6'];
+		} else { // Virtual
+			asistenciaLabels = ['Asistencia Registrada', 'Proceso Iniciado', 'Pendientes por Registrar'];
+			asistenciaData = [totalVirtual, totalIniciado, totalPendiente];
+			asistenciaColors = ['#0d6efd', '#ffc107', '#dee2e6'];
+		}
+
+		if (asistenciaData.every(item => item === 0)) {
+			document.getElementById('asistenciaChartContainer').innerHTML = '<div class="text-center text-muted p-4 d-flex align-items-center justify-content-center h-100"><div><i class="bi bi-bar-chart-line fs-1"></i><p class="mt-2">Los datos de asistencia aparecerán aquí cuando los invitados comiencen el proceso de registro.</p></div></div>';
+		} else {
+			new Chart(ctxAsistencia, {
+				type: 'doughnut',
+				data: {
+					labels: asistenciaLabels,
+					datasets: [{
+						data: asistenciaData,
+						backgroundColor: asistenciaColors,
+						borderColor: '#ffffff',
+						borderWidth: 2
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: {
+							display: false // OCULTA LA LEYENDA DEL GRÁFICO
+						}
+					}
+				}
+			});
+		}
+
+
+
 	});
 </script>
