@@ -134,7 +134,7 @@ class InvitacionModel extends Model
                     c.id as id_contacto, c.nombre, c.email,
                     i.id as id_invitacion, i.estado_rsvp, i.fecha_invitacion, 
                     i.asistencia_verificada, i.clave_visual_tipo,
-                    (SELECT ra.metodo_checkin FROM registros_asistencia ra WHERE ra.id_invitacion = i.id ORDER BY ra.fecha_checkin DESC LIMIT 1) as metodo_checkin
+                    (SELECT ra.coordenadas_checkin FROM registros_asistencia ra WHERE ra.id_invitacion = i.id ORDER BY ra.fecha_checkin DESC LIMIT 1) as metodo_checkin
                 FROM invitaciones i
                 JOIN contactos c ON i.id_contacto = c.id
                 WHERE i.id_evento = :id_evento AND c.id_organizador = :id_organizador

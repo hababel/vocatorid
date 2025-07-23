@@ -44,7 +44,7 @@ if ($total_enviados > 0 && $invitaciones_pendientes_de_envio == 0) {
 	if ($checklist['invitaciones_enviadas']) $puntuacion += 30;
 }
 
-// LÓGICA PARA EL NUEVO GRÁFICO DE ASISTENCIA
+// LÓGICA CORREGIDA PARA EL NUEVO GRÁFICO DE ASISTENCIA
 $asistencia_completa_virtual = 0;
 $asistencia_completa_fisico = 0;
 $asistencia_iniciada = 0;
@@ -52,9 +52,10 @@ $asistencia_iniciada = 0;
 if (!empty($invitados)) {
 	foreach ($invitados as $invitado) {
 		if ($invitado->asistencia_verificada) {
-			if ($invitado->metodo_checkin == '3FAV') {
+			// Se usa strpos para buscar una subcadena, es más robusto
+			if (strpos($invitado->metodo_checkin, '3-FAV') !== false) {
 				$asistencia_completa_virtual++;
-			} else { // Asumimos que cualquier otro método es físico/manual
+			} elseif (strpos($invitado->metodo_checkin, 'Kiosco Físico') !== false) {
 				$asistencia_completa_fisico++;
 			}
 		} elseif (!empty($invitado->clave_visual_tipo)) {
@@ -92,6 +93,12 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 	}
 
 	.chart-container {
+		position: relative;
+		height: 250px;
+		width: 100%;
+	}
+
+	.asistencia-chart-container {
 		position: relative;
 		height: 250px;
 		width: 100%;
@@ -259,27 +266,10 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 	<div class="tab-content" id="eventoTabContent">
 		<div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
 			<div class="row g-4">
-				<div class="col-lg-4">
-					<div class="card shadow-sm h-100">
-						<div class="card-body">
-							<h5 class="card-title"><i class="bi bi-check2-circle me-2"></i>Checklist del Evento</h5>
-							<p class="small text-muted">Completa estos pasos para asegurar el éxito de tu evento.</p>
-							<ul class="list-group list-group-flush">
-								<li class="list-group-item <?php echo $checklist['publicado'] ? 'text-decoration-line-through text-muted' : ''; ?>"><i class="bi <?php echo $checklist['publicado'] ? 'bi-check-circle-fill text-success' : 'bi-circle'; ?> me-2"></i>Publicar el evento</li>
-								<li class="list-group-item <?php echo $checklist['invitados_agregados'] ? 'text-decoration-line-through text-muted' : ''; ?>"><i class="bi <?php echo $checklist['invitados_agregados'] ? 'bi-check-circle-fill text-success' : 'bi-circle'; ?> me-2"></i>Añadir invitados a la lista</li>
-								<li class="list-group-item <?php echo $checklist['invitaciones_enviadas'] ? 'text-decoration-line-through text-muted' : ''; ?>"><i class="bi <?php echo $checklist['invitaciones_enviadas'] ? 'bi-check-circle-fill text-success' : 'bi-circle'; ?> me-2"></i>Enviar todas las invitaciones</li>
-							</ul>
-							<h5 class="mt-4">Puntuación de Salud del Evento</h5>
-							<div class="progress" style="height: 20px;">
-								<div class="progress-bar bg-primary" role="progressbar" style="width: <?php echo $puntuacion; ?>%;" aria-valuenow="<?php echo $puntuacion; ?>" aria-valuemin="0" aria-valuemax="100"><?php echo $puntuacion; ?>%</div>
-							</div>
-						</div>
-					</div>
-				</div>
 				<div class="col-lg-8">
 					<div class="card shadow-sm h-100">
 						<div class="card-body">
-							<h5 class="card-title"><i class="bi bi-pie-chart-fill me-2"></i>Resumen de Estado</h5>
+							<h5 class="card-title"><i class="bi bi-pie-chart-fill me-2"></i>Resumen de Estado (RSVP)</h5>
 							<div class="row align-items-center">
 								<div class="col-md-7">
 									<div class="chart-container">
@@ -316,8 +306,22 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 						</div>
 					</div>
 				</div>
-			</div>
-			<div class="row g-4">
+				<div class="col-lg-4">
+					<div class="card shadow-sm h-100">
+						<div class="card-body">
+							<h5 class="card-title"><i class="bi bi-check2-circle me-2"></i>Checklist del Evento</h5>
+							<ul class="list-group list-group-flush">
+								<li class="list-group-item <?php echo $checklist['publicado'] ? 'text-decoration-line-through text-muted' : ''; ?>"><i class="bi <?php echo $checklist['publicado'] ? 'bi-check-circle-fill text-success' : 'bi-circle'; ?> me-2"></i>Publicar el evento</li>
+								<li class="list-group-item <?php echo $checklist['invitados_agregados'] ? 'text-decoration-line-through text-muted' : ''; ?>"><i class="bi <?php echo $checklist['invitados_agregados'] ? 'bi-check-circle-fill text-success' : 'bi-circle'; ?> me-2"></i>Añadir invitados a la lista</li>
+								<li class="list-group-item <?php echo $checklist['invitaciones_enviadas'] ? 'text-decoration-line-through text-muted' : ''; ?>"><i class="bi <?php echo $checklist['invitaciones_enviadas'] ? 'bi-check-circle-fill text-success' : 'bi-circle'; ?> me-2"></i>Enviar todas las invitaciones</li>
+							</ul>
+							<h5 class="mt-4">Puntuación de Salud del Evento</h5>
+							<div class="progress" style="height: 20px;">
+								<div class="progress-bar bg-primary" role="progressbar" style="width: <?php echo $puntuacion; ?>%;" aria-valuenow="<?php echo $puntuacion; ?>" aria-valuemin="0" aria-valuemax="100"><?php echo $puntuacion; ?>%</div>
+							</div>
+						</div>
+					</div>
+				</div>
 
 				<div class="col-lg-12">
 					<div class="card shadow-sm">
@@ -399,7 +403,7 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 								</tr>
 							</thead>
 							<tbody>
-								<template x-for="invitado in <?php echo htmlspecialchars(json_encode($invitados)); ?>.filter(i => searchTerm === '' || i.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || i.email.toLowerCase().includes(searchTerm.toLowerCase()))" :key="invitado.id_invitacion">
+								<template x-for="invitado in <?php echo json_encode($invitados); ?>.filter(i => searchTerm === '' || i.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || i.email.toLowerCase().includes(searchTerm.toLowerCase()))" :key="invitado.id_invitacion">
 									<tr>
 										<td class="ps-3"><strong x-text="invitado.nombre"></strong></td>
 										<td x-text="invitado.email"></td>
@@ -412,13 +416,12 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 										</td>
 										<td class="text-center">
 											<a :href="`<?php echo URL_PATH; ?>invitacion/reenviar/${invitado.id_invitacion}`" class="btn btn-sm btn-outline-primary" title="Reenviar Invitación"><i class="bi bi-send-arrow-up-fill"></i></a>
-											<button :href="`<?php echo URL_PATH; ?>invitacion/desinvitar/<?php echo $evento->id; ?>/${invitado.id_invitacion}`"
+											<a :href="`<?php echo URL_PATH; ?>invitacion/desinvitar/<?php echo $evento->id; ?>/${invitado.id_invitacion}`"
 												class="btn btn-sm btn-outline-danger ms-1"
 												title="Eliminar Invitación"
-												:disabled="'<?php echo $evento->estado; ?>' !== 'Borrador' && invitado.estado_rsvp === 'Confirmado'"
-												@click.prevent="if(!($el.disabled)) window.location.href = $el.getAttribute('href')">
+												@click.prevent="window.location.href = $el.getAttribute('href')">
 												<i class="bi bi-x-lg"></i>
-											</button>
+											</a>
 										</td>
 									</tr>
 								</template>
@@ -466,33 +469,12 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 				maintainAspectRatio: false,
 				plugins: {
 					legend: {
-						position: 'top'
+						display: false
 					}
 				}
 			}
 		});
 
-		<?php if ($evento->modo != 'Virtual' && !empty($evento->latitud)): ?>
-			const lat = <?php echo $evento->latitud; ?>;
-			const lng = <?php echo $evento->longitud; ?>;
-			const map = L.map('map-gestionar', {
-				scrollWheelZoom: false
-			}).setView([lat, lng], 15);
-			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-			L.marker([lat, lng]).addTo(map).bindPopup('<b><?php echo htmlspecialchars($evento->nombre_evento); ?></b>').openPopup();
-		<?php endif; ?>
-
-		const alertElement = document.getElementById('autoCloseAlert');
-		if (alertElement) {
-			setTimeout(function() {
-				const bsAlert = new bootstrap.Alert(alertElement);
-				bsAlert.close();
-			}, 8000);
-		}
-
-		// ======================================================
-		// SCRIPT PARA EL NUEVO GRÁFICO DE ASISTENCIA
-		// ======================================================
 		const ctxAsistencia = document.getElementById('asistenciaChart').getContext('2d');
 		const modoEvento = '<?php echo $evento->modo; ?>';
 
@@ -538,14 +520,29 @@ $asistencia_pendiente = $total_invitados - ($asistencia_completa_virtual + $asis
 					maintainAspectRatio: false,
 					plugins: {
 						legend: {
-							display: false // OCULTA LA LEYENDA DEL GRÁFICO
+							display: false
 						}
 					}
 				}
 			});
 		}
 
+		<?php if ($evento->modo != 'Virtual' && !empty($evento->latitud)): ?>
+			const lat = <?php echo $evento->latitud; ?>;
+			const lng = <?php echo $evento->longitud; ?>;
+			const map = L.map('map-gestionar', {
+				scrollWheelZoom: false
+			}).setView([lat, lng], 15);
+			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+			L.marker([lat, lng]).addTo(map).bindPopup('<b><?php echo htmlspecialchars($evento->nombre_evento); ?></b>').openPopup();
+		<?php endif; ?>
 
-
+		const alertElement = document.getElementById('autoCloseAlert');
+		if (alertElement) {
+			setTimeout(function() {
+				const bsAlert = new bootstrap.Alert(alertElement);
+				bsAlert.close();
+			}, 8000);
+		}
 	});
 </script>
