@@ -126,7 +126,7 @@
 					<img src="<?php echo $qr_code_url; ?>" alt="Tu Código QR Personal" style="max-width: 150px;" class="qr-code">
 				</p>
 				<p class="card-text" style="background-color: #ffffff; padding: 15px; border-radius: 8px;"><strong>Opción 2 (Virtual):</strong> Haz clic en el botón de abajo.<br><br>
-					<a href="<?php echo $enlace_bienvenida; ?>" target="_blank" class="button" style="background-color: #007aff; color: white;">➡️ Iniciar Registro Virtual</a>
+					<a href="#" target="_blank" class="button" style="background-color: #007aff; color: white;" onclick="abrirEnNuevaVentana('<?php echo $enlace_bienvenida; ?>')">➡️ Iniciar Registro Virtual</a>
 				</p>
 			</div>
 
@@ -145,6 +145,12 @@
 			<p>&copy; <?php echo date('Y'); ?> <?php echo NOMBRE_EMPRESA_APP; ?>. Todos los derechos reservados.</p>
 		</div>
 	</div>
+
+	<script>
+		function abrirEnNuevaVentana(url) {
+			window.open(url, '_blank');
+		}
+	</script>
 </body>
 
 </html>
