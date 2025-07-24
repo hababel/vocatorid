@@ -44,9 +44,7 @@ if ($total_enviados > 0 && $invitaciones_pendientes_de_envio == 0) {
 	if ($checklist['invitaciones_enviadas']) $puntuacion += 30;
 }
 
-// ====================================================================
-// INICIO DE LA CORRECCIÓN: LÓGICA MEJORADA PARA GRÁFICO DE ASISTENCIA
-// ====================================================================
+// LÓGICA PARA EL GRÁFICO DE ASISTENCIA Y PORCENTAJES
 $asistencia_completa_virtual = 0;
 $asistencia_completa_fisico = 0;
 $asistencia_iniciada = 0;
@@ -54,10 +52,9 @@ $asistencia_iniciada = 0;
 if (!empty($invitados)) {
 	foreach ($invitados as $invitado) {
 		if ($invitado->asistencia_verificada) {
-			// Se corrige la comparación para que coincida con los valores reales guardados
 			if ($invitado->metodo_checkin == 'Verificado por 3-FAV') {
 				$asistencia_completa_virtual++;
-			} elseif ($invitado->metodo_checkin == 'Kiosco Físico') {
+			} else { // Asumimos que cualquier otro método es físico/manual
 				$asistencia_completa_fisico++;
 			}
 		} elseif (!empty($invitado->clave_visual_tipo)) {
@@ -66,13 +63,8 @@ if (!empty($invitados)) {
 	}
 }
 $total_registrados = $asistencia_completa_virtual + $asistencia_completa_fisico;
-$asistencia_pendiente = $total_invitados > 0 ? $total_invitados - $total_registrados - $asistencia_iniciada : 0;
-if ($asistencia_pendiente < 0) $asistencia_pendiente = 0; // Asegurarse de que no sea negativo
-
+$asistencia_pendiente = $total_invitados - ($total_registrados + $asistencia_iniciada);
 $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_invitados) * 100 : 0;
-// ==================================================================
-// FIN DE LA CORRECCIÓN
-// ==================================================================
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -268,10 +260,9 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 
 	<ul class="nav nav-tabs mb-4" id="eventoTab" role="tablist">
 		<li class="nav-item" role="presentation"><button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="true"><i class="bi bi-speedometer2 me-2"></i>Dashboard</button></li>
-		<li class="nav-item" role="presentation"><button class="nav-link" id="invitados-tab" data-bs-toggle="tab" data-bs-target="#invitados" type="button" role="tab" aria-controls="invitados" aria-selected="false"><i class="bi bi-people-fill me-2"></i>Gestionar Invitados</button></li>
+		<li class="nav-item" role="presentation"><button class="nav-link" id="invitados-tab" data-bs-toggle="tab" data-bs-target="#invitados" type="button" role="tab" aria-controls="invitados" aria-selected="false"><i class="bi bi-people-fill me-2"></i>Gestionar Invitados (<?php echo $total_invitados; ?>)</button></li>
 		<li class="nav-item" role="presentation"><button class="nav-link" id="agregar-invitados-tab" data-bs-toggle="tab" data-bs-target="#agregar-invitados" type="button" role="tab" aria-controls="agregar-invitados" aria-selected="false"><i class="bi bi-person-plus-fill me-2"></i>Agregar Invitados</button></li>
 	</ul>
-
 	<div class="tab-content" id="eventoTabContent">
 		<div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
 			<div class="row g-4">
@@ -415,7 +406,10 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 					<?php endif; ?>
 				</div>
 				<div class="card-body p-0">
-					<div class="p-3 border-bottom"><input type="text" class="form-control" placeholder="Buscar invitado por nombre o email..." x-model="searchTerm"></div>
+					<div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+						<div class="fw-bold text-muted">Total de Invitados: <?php echo $total_invitados; ?></div>
+						<input type="text" id="searchInput" class="form-control" style="max-width: 400px;" placeholder="Buscar invitado por nombre o email...">
+					</div>
 					<div class="table-responsive">
 						<table class="table table-hover align-middle mb-0">
 							<thead class="table-light">
@@ -426,32 +420,7 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 									<th class="text-center">Acciones</th>
 								</tr>
 							</thead>
-							<tbody>
-								<template x-for="invitado in <?php echo json_encode($invitados); ?>.filter(i => searchTerm === '' || i.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || i.email.toLowerCase().includes(searchTerm.toLowerCase()))" :key="invitado.id_invitacion">
-									<tr>
-										<td class="ps-3"><strong x-text="invitado.nombre"></strong></td>
-										<td x-text="invitado.email"></td>
-										<td>
-											<span x-show="invitado.asistencia_verificada" class="badge bg-primary"><i class="bi bi-check-circle-fill me-1"></i> Asistió</span>
-											<span x-show="!invitado.asistencia_verificada && invitado.estado_rsvp == 'Confirmado'" class="badge bg-success"><i class="bi bi-hand-thumbs-up-fill me-1"></i> Confirmado</span>
-											<span x-show="!invitado.asistencia_verificada && invitado.estado_rsvp == 'Rechazado'" class="badge bg-danger"><i class="bi bi-hand-thumbs-down-fill me-1"></i> Rechazado</span>
-											<span x-show="!invitado.asistencia_verificada && invitado.estado_rsvp == 'Pendiente' && invitado.fecha_invitacion" class="badge bg-info"><i class="bi bi-send-check-fill me-1"></i> Enviada</span>
-											<span x-show="!invitado.asistencia_verificada && invitado.estado_rsvp == 'Pendiente' && !invitado.fecha_invitacion" class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i> Pendiente de Envío</span>
-										</td>
-										<td class="text-center">
-											<a :href="`<?php echo URL_PATH; ?>invitacion/reenviar/${invitado.id_invitacion}`" class="btn btn-sm btn-outline-primary" title="Reenviar Invitación"><i class="bi bi-send-arrow-up-fill"></i></a>
-											<a :href="`<?php echo URL_PATH; ?>invitacion/desinvitar/<?php echo $evento->id; ?>/${invitado.id_invitacion}`"
-												class="btn btn-sm btn-outline-danger ms-1"
-												title="Eliminar Invitación"
-												@click.prevent="window.location.href = $el.getAttribute('href')">
-												<i class="bi bi-x-lg"></i>
-											</a>
-										</td>
-									</tr>
-								</template>
-								<?php if (empty($invitados)): ?><tr>
-										<td colspan="4" class="text-center text-muted py-4">No hay invitados en este evento.</td>
-									</tr><?php endif; ?>
+							<tbody id="invitados-tbody">
 							</tbody>
 						</table>
 					</div>
@@ -467,6 +436,7 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 
 <script>
 	document.addEventListener('DOMContentLoaded', function() {
+		// --- GRÁFICOS (SIN CAMBIOS) ---
 		const ctx = document.getElementById('dynamicChart').getContext('2d');
 		const estadoEvento = '<?php echo $evento->estado; ?>';
 		let chartData = (estadoEvento === 'En Curso' || estadoEvento === 'Finalizado') ? {
@@ -484,7 +454,6 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 				borderColor: ['#198754', '#dc3545', '#ffc107']
 			}]
 		};
-
 		new Chart(ctx, {
 			type: 'doughnut',
 			data: chartData,
@@ -499,36 +468,26 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 			}
 		});
 
-		// ====================================================================
-		// INICIO DE LA CORRECCIÓN: SCRIPT MEJORADO PARA LA GRÁFICA
-		// ====================================================================
 		const ctxAsistencia = document.getElementById('asistenciaChart').getContext('2d');
 		const modoEvento = '<?php echo $evento->modo; ?>';
-
 		let asistenciaLabels = [];
 		let asistenciaData = [];
 		let asistenciaColors = [];
-
 		const totalRegistrados = <?php echo $total_registrados; ?>;
 		const totalVirtual = <?php echo $asistencia_completa_virtual; ?>;
 		const totalFisico = <?php echo $asistencia_completa_fisico; ?>;
 		const totalIniciado = <?php echo $asistencia_iniciada; ?>;
 		const totalPendiente = <?php echo $asistencia_pendiente; ?>;
-
 		if (modoEvento === 'Hibrido') {
 			asistenciaLabels = ['Virtual (3-FAV)', 'Presencial (Kiosco)', 'Proceso Iniciado', 'Pendientes por Registrar'];
 			asistenciaData = [totalVirtual, totalFisico, totalIniciado, totalPendiente];
-			// Azul para virtual, Morado para presencial, Amarillo para iniciado, Gris para pendiente
 			asistenciaColors = ['#0d6efd', '#6f42c1', '#ffc107', '#dee2e6'];
-		} else { // Simplificado para modos 'Virtual' y 'Presencial'
+		} else {
 			asistenciaLabels = ['Asistencia Registrada', 'Proceso Iniciado', 'Pendientes por Registrar'];
 			asistenciaData = [totalRegistrados, totalIniciado, totalPendiente];
-			// Verde para la asistencia general, Amarillo para iniciado, Gris para pendiente
 			asistenciaColors = ['#198754', '#ffc107', '#dee2e6'];
 		}
-
 		const totalAsistenciaData = asistenciaData.reduce((a, b) => a + b, 0);
-
 		if (totalAsistenciaData === 0) {
 			document.getElementById('asistenciaChartContainer').innerHTML = '<div class="text-center text-muted p-4 d-flex align-items-center justify-content-center h-100"><div><i class="bi bi-bar-chart-line fs-1"></i><p class="mt-2">Los datos de asistencia aparecerán aquí cuando los invitados comiencen el proceso de registro.</p></div></div>';
 		} else {
@@ -554,11 +513,8 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 				}
 			});
 		}
-		// ==================================================================
-		// FIN DE LA CORRECCIÓN
-		// ==================================================================
 
-
+		// --- MAPA (SIN CAMBIOS) ---
 		<?php if ($evento->modo != 'Virtual' && !empty($evento->latitud)): ?>
 			const lat = <?php echo $evento->latitud; ?>;
 			const lng = <?php echo $evento->longitud; ?>;
@@ -569,6 +525,7 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 			L.marker([lat, lng]).addTo(map).bindPopup('<b><?php echo htmlspecialchars($evento->nombre_evento); ?></b>').openPopup();
 		<?php endif; ?>
 
+		// --- ALERTA (SIN CAMBIOS) ---
 		const alertElement = document.getElementById('autoCloseAlert');
 		if (alertElement) {
 			setTimeout(function() {
@@ -576,5 +533,84 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 				bsAlert.close();
 			}, 8000);
 		}
+
+		// --- IMPLEMENTACIÓN DE LISTA DE INVITADOS CON VANILLA JS (SIN CAMBIOS) ---
+		const invitadosData = <?php echo json_encode($invitados); ?> || [];
+		const tbody = document.getElementById('invitados-tbody');
+		const searchInput = document.getElementById('searchInput');
+
+		const getStatusBadge = (invitado) => {
+			if (invitado.asistencia_verificada) {
+				return `<span class="badge bg-primary"><i class="bi bi-check-circle-fill me-1"></i> Asistió</span>`;
+			}
+			if (invitado.estado_rsvp == 'Confirmado') {
+				return `<span class="badge bg-success"><i class="bi bi-hand-thumbs-up-fill me-1"></i> Confirmado</span>`;
+			}
+			if (invitado.estado_rsvp == 'Rechazado') {
+				return `<span class="badge bg-danger"><i class="bi bi-hand-thumbs-down-fill me-1"></i> Rechazado</span>`;
+			}
+			if (invitado.estado_rsvp == 'Pendiente' && invitado.fecha_invitacion) {
+				return `<span class="badge bg-info"><i class="bi bi-send-check-fill me-1"></i> Enviada</span>`;
+			}
+			if (invitado.estado_rsvp == 'Pendiente' && !invitado.fecha_invitacion) {
+				return `<span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i> Pendiente de Envío</span>`;
+			}
+			return '';
+		};
+
+		const renderTable = (filter) => {
+			tbody.innerHTML = ''; // Limpiar la tabla
+
+			if (!invitadosData || invitadosData.length === 0) {
+				tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Aún no has agregado invitados a este evento.</td></tr>`;
+				return;
+			}
+
+			const searchTerm = filter.toLowerCase();
+			const filteredData = invitadosData.filter(invitado => {
+				const nombre = (invitado.nombre || '').toLowerCase();
+				const email = (invitado.email || '').toLowerCase();
+				return nombre.includes(searchTerm) || email.includes(searchTerm);
+			});
+
+			if (filteredData.length === 0) {
+				tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">No se encontraron invitados con ese término de búsqueda.</td></tr>`;
+				return;
+			}
+
+			filteredData.forEach(invitado => {
+				const tr = document.createElement('tr');
+
+				const nombre = invitado.nombre || 'Nombre no asignado';
+				const urlReenviar = `<?php echo URL_PATH; ?>invitacion/reenviar/${invitado.id_invitacion}`;
+				const urlDesinvitar = `<?php echo URL_PATH; ?>invitacion/desinvitar/<?php echo $evento->id; ?>/${invitado.id_invitacion}`;
+
+				tr.innerHTML = `
+					<td class="ps-3"><strong>${nombre}</strong></td>
+					<td>${invitado.email}</td>
+					<td>${getStatusBadge(invitado)}</td>
+					<td class="text-center">
+						<a href="${urlReenviar}" class="btn btn-sm btn-outline-primary" title="Reenviar Invitación"><i class="bi bi-send-arrow-up-fill"></i></a>
+						<a href="${urlDesinvitar}" class="btn btn-sm btn-outline-danger ms-1" title="Eliminar Invitación"><i class="bi bi-x-lg"></i></a>
+					</td>
+				`;
+
+				const deleteButton = tr.querySelector('a[title="Eliminar Invitación"]');
+				deleteButton.addEventListener('click', (event) => {
+					event.preventDefault();
+					if (confirm(`¿Estás seguro de que deseas eliminar la invitación para ${nombre}?`)) {
+						window.location.href = deleteButton.href;
+					}
+				});
+
+				tbody.appendChild(tr);
+			});
+		};
+
+		searchInput.addEventListener('input', (event) => {
+			renderTable(event.target.value);
+		});
+
+		renderTable('');
 	});
 </script>
