@@ -44,7 +44,9 @@ if ($total_enviados > 0 && $invitaciones_pendientes_de_envio == 0) {
 	if ($checklist['invitaciones_enviadas']) $puntuacion += 30;
 }
 
-// LÓGICA PARA EL GRÁFICO DE ASISTENCIA Y PORCENTAJES
+// ====================================================================
+// INICIO DE LA CORRECCIÓN: LÓGICA MEJORADA PARA GRÁFICO DE ASISTENCIA
+// ====================================================================
 $asistencia_completa_virtual = 0;
 $asistencia_completa_fisico = 0;
 $asistencia_iniciada = 0;
@@ -52,9 +54,10 @@ $asistencia_iniciada = 0;
 if (!empty($invitados)) {
 	foreach ($invitados as $invitado) {
 		if ($invitado->asistencia_verificada) {
-			if ($invitado->metodo_checkin == '3FAV') {
+			// Se corrige la comparación para que coincida con los valores reales guardados
+			if ($invitado->metodo_checkin == 'Verificado por 3-FAV') {
 				$asistencia_completa_virtual++;
-			} else { // Asumimos que cualquier otro método es físico/manual
+			} elseif ($invitado->metodo_checkin == 'Kiosco Físico') {
 				$asistencia_completa_fisico++;
 			}
 		} elseif (!empty($invitado->clave_visual_tipo)) {
@@ -63,8 +66,13 @@ if (!empty($invitados)) {
 	}
 }
 $total_registrados = $asistencia_completa_virtual + $asistencia_completa_fisico;
-$asistencia_pendiente = $total_invitados - ($total_registrados + $asistencia_iniciada);
+$asistencia_pendiente = $total_invitados > 0 ? $total_invitados - $total_registrados - $asistencia_iniciada : 0;
+if ($asistencia_pendiente < 0) $asistencia_pendiente = 0; // Asegurarse de que no sea negativo
+
 $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_invitados) * 100 : 0;
+// ==================================================================
+// FIN DE LA CORRECCIÓN
+// ==================================================================
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -491,6 +499,9 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 			}
 		});
 
+		// ====================================================================
+		// INICIO DE LA CORRECCIÓN: SCRIPT MEJORADO PARA LA GRÁFICA
+		// ====================================================================
 		const ctxAsistencia = document.getElementById('asistenciaChart').getContext('2d');
 		const modoEvento = '<?php echo $evento->modo; ?>';
 
@@ -498,6 +509,7 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 		let asistenciaData = [];
 		let asistenciaColors = [];
 
+		const totalRegistrados = <?php echo $total_registrados; ?>;
 		const totalVirtual = <?php echo $asistencia_completa_virtual; ?>;
 		const totalFisico = <?php echo $asistencia_completa_fisico; ?>;
 		const totalIniciado = <?php echo $asistencia_iniciada; ?>;
@@ -506,15 +518,13 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 		if (modoEvento === 'Hibrido') {
 			asistenciaLabels = ['Virtual (3-FAV)', 'Presencial (Kiosco)', 'Proceso Iniciado', 'Pendientes por Registrar'];
 			asistenciaData = [totalVirtual, totalFisico, totalIniciado, totalPendiente];
+			// Azul para virtual, Morado para presencial, Amarillo para iniciado, Gris para pendiente
 			asistenciaColors = ['#0d6efd', '#6f42c1', '#ffc107', '#dee2e6'];
-		} else if (modoEvento === 'Presencial') {
+		} else { // Simplificado para modos 'Virtual' y 'Presencial'
 			asistenciaLabels = ['Asistencia Registrada', 'Proceso Iniciado', 'Pendientes por Registrar'];
-			asistenciaData = [totalFisico, totalIniciado, totalPendiente];
-			asistenciaColors = ['#6f42c1', '#ffc107', '#dee2e6'];
-		} else { // Virtual
-			asistenciaLabels = ['Asistencia Registrada', 'Proceso Iniciado', 'Pendientes por Registrar'];
-			asistenciaData = [totalVirtual, totalIniciado, totalPendiente];
-			asistenciaColors = ['#0d6efd', '#ffc107', '#dee2e6'];
+			asistenciaData = [totalRegistrados, totalIniciado, totalPendiente];
+			// Verde para la asistencia general, Amarillo para iniciado, Gris para pendiente
+			asistenciaColors = ['#198754', '#ffc107', '#dee2e6'];
 		}
 
 		const totalAsistenciaData = asistenciaData.reduce((a, b) => a + b, 0);
@@ -544,6 +554,10 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 				}
 			});
 		}
+		// ==================================================================
+		// FIN DE LA CORRECCIÓN
+		// ==================================================================
+
 
 		<?php if ($evento->modo != 'Virtual' && !empty($evento->latitud)): ?>
 			const lat = <?php echo $evento->latitud; ?>;
