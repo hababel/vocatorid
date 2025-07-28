@@ -56,9 +56,9 @@
 					<h5>Añadir un nuevo invitado manualmente</h5>
 					<p class="text-muted small">El contacto se guardará en tu libreta de direcciones y se invitará al evento.</p>
 					<div class="row g-3">
-						<div class="col-md-6"><label for="nombre_manual" class="form-label">Nombre Completo <span class="text-danger">*</span></label><input type="text" class="form-control" name="nombre_manual" id="nombre_manual"></div>
-						<div class="col-md-6"><label for="email_manual" class="form-label">Correo Electrónico <span class="text-danger">*</span></label><input type="email" class="form-control" name="email_manual" id="email_manual"></div>
-						<div class="col-md-6"><label for="telefono_manual" class="form-label">Teléfono (Opcional)</label><input type="tel" class="form-control" name="telefono_manual" id="telefono_manual"></div>
+						<div class="col-md-6"><label for="nombre_manual" class="form-label">Nombre Completo <span class="text-danger">*</span></label><input type="text" class="form-control" name="nombre_manual" id="nombre_manual" required></div>
+						<div class="col-md-6"><label for="email_manual" class="form-label">Correo Electrónico <span class="text-danger">*</span></label><input type="email" class="form-control" name="email_manual" id="email_manual" required></div>
+						<div class="col-md-12"><label for="telefono_manual" class="form-label">Teléfono Móvil <span class="text-danger">*</span></label><input type="tel" class="form-control" name="telefono_manual" id="telefono_manual" required></div>
 					</div>
 				</div>
 
@@ -68,13 +68,13 @@
 						<div>
 							<strong>Formato:</strong>
 							<ul class="mb-0 small">
-								<li>Columna 1: <strong>Nombre Completo</strong>, Columna 2: <strong>Email</strong>, Columna 3: <strong>Teléfono (Opcional)</strong></li>
+								<li>Columna 1: <strong>Nombre Completo</strong>, Columna 2: <strong>Email</strong>, Columna 3: <strong>Teléfono (Obligatorio)</strong></li>
 								<li>La primera fila se ignora (cabecera).</li>
 							</ul>
 						</div>
 						<a href="<?php echo URL_PATH; ?>contacto/descargarPlantilla" class="btn btn-outline-primary btn-sm"><i class="bi bi-download me-2"></i>Descargar Plantilla</a>
 					</div>
-					<div class="mb-3"><label for="archivo_csv" class="form-label">Selecciona tu archivo .csv <span class="text-danger">*</span></label><input class="form-control" type="file" name="archivo_csv" id="archivo_csv" accept=".csv"></div>
+					<div class="mb-3"><label for="archivo_csv" class="form-label">Selecciona tu archivo .csv <span class="text-danger">*</span></label><input class="form-control" type="file" name="archivo_csv" id="archivo_csv" accept=".csv" required></div>
 				</div>
 
 				<hr class="my-4">

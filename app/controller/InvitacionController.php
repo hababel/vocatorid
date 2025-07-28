@@ -68,8 +68,18 @@ class InvitacionController extends Controller
 			case 'manual':
 				$nombre = trim($_POST['nombre_manual']);
 				$email = trim($_POST['email_manual']);
+				// --- INICIO DE CAMBIOS ---
+				$telefono = trim($_POST['telefono_manual'] ?? '');
+
+				if (empty($telefono) || !is_numeric($telefono) || strlen($telefono) < 7 || strlen($telefono) > 15) {
+					$this->crearMensaje('error', 'El número de teléfono es obligatorio y debe ser un número válido.');
+					$this->redireccionar('evento/gestionar/' . $id_evento);
+					return;
+				}
+				// --- FIN DE CAMBIOS ---
+
 				if (empty($nombre) || empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-					$this->crearMensaje('error', 'El nombre y el correo electrónico son obligatorios y deben ser válidos.');
+					$this->crearMensaje('error', 'El nombre, el correo electrónico y el teléfono son obligatorios y deben ser válidos.');
 					$this->redireccionar('evento/gestionar/' . $id_evento);
 					return;
 				}
@@ -85,7 +95,7 @@ class InvitacionController extends Controller
 						'id_organizador' => $id_organizador,
 						'nombre' => $nombre,
 						'email' => $email,
-						'telefono' => trim($_POST['telefono_manual'] ?? ''),
+						'telefono' => $telefono,
 						'acepta_habeas_data' => 0,
 						'fuente_registro' => 'Manual',
 						'lote_importacion' => null,
@@ -116,9 +126,17 @@ class InvitacionController extends Controller
 					if (($gestor = fopen($archivo, "r")) !== FALSE) {
 						fgetcsv($gestor, 1000, ";");
 						while (($datos_fila = fgetcsv($gestor, 1000, ";")) !== FALSE) {
-							if (count($datos_fila) >= 2 && !empty($datos_fila[0]) && filter_var($datos_fila[1], FILTER_VALIDATE_EMAIL)) {
+							if (count($datos_fila) >= 3 && !empty($datos_fila[0]) && filter_var($datos_fila[1], FILTER_VALIDATE_EMAIL)) {
 								$email_csv = trim($datos_fila[1]);
 								$nombre_csv = trim($datos_fila[0]);
+								$telefono_csv = trim($datos_fila[2]);
+
+								// --- INICIO DE CAMBIOS ---
+								// Validación del teléfono para cada fila del CSV
+								if (empty($telefono_csv) || !is_numeric($telefono_csv) || strlen($telefono_csv) < 7 || strlen($telefono_csv) > 15) {
+									continue; // Saltar esta fila si el teléfono no es válido
+								}
+								// --- FIN DE CAMBIOS ---
 
 								$id_contacto_csv = null;
 								$contacto_existente_csv = $this->contactoModel->obtenerPorEmailYOrganizador($email_csv, $id_organizador);
@@ -130,7 +148,7 @@ class InvitacionController extends Controller
 										'id_organizador' => $id_organizador,
 										'nombre' => $nombre_csv,
 										'email' => $email_csv,
-										'telefono' => isset($datos_fila[2]) ? trim($datos_fila[2]) : '',
+										'telefono' => $telefono_csv,
 										'acepta_habeas_data' => 0,
 										'fuente_registro' => 'Importacion_CSV',
 										'lote_importacion' => $lote_id,
