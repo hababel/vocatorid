@@ -52,12 +52,14 @@ document.addEventListener('DOMContentLoaded', function () {
             // 3. Detectar el país del usuario
             try {
                 // --- INICIO DE CAMBIOS ---
-                const geoResponse = await fetch('https://ip-api.com/json/?fields=countryCode');
-                // --- FIN DE CAMBIOS ---
+                // Se utiliza una API más confiable que no requiere clave para HTTPS
+                const geoResponse = await fetch('https://ipinfo.io/json');
                 const geoData = await geoResponse.json();
-                if (geoData.countryCode) {
-                    countrySelect.value = geoData.countryCode;
+                // La nueva API devuelve el código en la propiedad "country"
+                if (geoData.country) {
+                    countrySelect.value = geoData.country;
                 }
+                // --- FIN DE CAMBIOS ---
             } catch (error) {
                 console.warn('No se pudo detectar la geolocalización, se usará un valor por defecto.');
                 countrySelect.value = 'CO'; // Fallback a Colombia
