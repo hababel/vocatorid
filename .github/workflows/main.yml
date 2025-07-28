@@ -1,20 +1,43 @@
-on: 
   push:
     branches:
       - main
-name: 🚀 Deploy website on push
+      - develop
+
 jobs:
-  web-deploy:
-    name: 🎉 Deploy
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v2
-    
-    - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@4.3.0
+    - name: Checkout código
+      uses: actions/checkout@v3
+
+    - name: Configurar entorno según rama
+      id: vars
+      run: |
+        if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+          echo "env_name=produccion" >> $GITHUB_OUTPUT
+          echo "ftp_host=${{ secrets.HOST_NAME }}" >> $GITHUB_OUTPUT
+          echo "ftp_user=${{ secrets.USER_NAME }}" >> $GITHUB_OUTPUT
+          echo "ftp_pass=${{ secrets.PASS }}" >> $GITHUB_OUTPUT
+          echo "server_dir=/" >> $GITHUB_OUTPUT
+        else
+          echo "env_name=staging" >> $GITHUB_OUTPUT
+          echo "ftp_host=${{ secrets.HOST_NAME_STAGING }}" >> $GITHUB_OUTPUT
+          echo "ftp_user=${{ secrets.USER_NAME_STAGING }}" >> $GITHUB_OUTPUT
+          echo "ftp_pass=${{ secrets.PASS_STAGING }}" >> $GITHUB_OUTPUT
+          echo "server_dir=/" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Mostrar entorno seleccionado
+      run: |
+        echo "Desplegando en entorno: ${{ steps.vars.outputs.env_name }}"
+        echo "Directorio remoto: ${{ steps.vars.outputs.server_dir }}"
+
+    - name: Deploy vía FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        server: ${{ secrets.HOST_NAME }}
-        username: ${{ secrets.USER_NAME }}
-        password: ${{ secrets.PASS }}
-        server-dir: / 
+        server: ${{ steps.vars.outputs.ftp_host }}
+        username: ${{ steps.vars.outputs.ftp_user }}
+        password: ${{ steps.vars.outputs.ftp_pass }}
+        server-dir: ${{ steps.vars.outputs.server_dir }}
+        dangerous-clean-slate: false
