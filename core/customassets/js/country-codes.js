@@ -1,21 +1,50 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Objeto global para gestionar los inputs de teléfono
+    window.phoneInputManager = {
+        instances: {},
+        
+        // --- INICIO DE CAMBIOS ---
+        // Nueva función para establecer el valor de un campo de teléfono internacional
+        setPhoneNumber: function(phoneInputId, fullNumber) {
+            const instance = this.instances[phoneInputId];
+            if (!instance || !fullNumber) return;
+
+            const { countrySelect, phoneInput, countries } = instance;
+
+            // Encontrar el código de país que mejor coincida
+            let bestMatch = null;
+            countries.forEach(country => {
+                if (fullNumber.startsWith(country.dial_code)) {
+                    if (!bestMatch || country.dial_code.length > bestMatch.dial_code.length) {
+                        bestMatch = country;
+                    }
+                }
+            });
+
+            if (bestMatch) {
+                countrySelect.value = bestMatch.code;
+                const nationalNumber = fullNumber.substring(bestMatch.dial_code.length);
+                phoneInput.value = nationalNumber;
+            } else {
+                // Si no hay coincidencia, simplemente mostrar el número
+                phoneInput.value = fullNumber;
+            }
+             // Actualizar el valor oculto
+            instance.updateFullNumber();
+        }
+        // --- FIN DE CAMBIOS ---
+    };
+
     const PHONE_INPUTS_CONFIG = [
-        // --- Configuración para los distintos formularios ---
-        // Registro Anónimo
         { formId: 'formRegistroAnonimo', phoneInputId: 'telefono', hiddenInputName: 'telefono' },
-        // Añadir Contacto Manual (Libreta)
         { formId: 'formNuevoContacto', phoneInputId: 'telefono_nuevo', hiddenInputName: 'telefono' },
-        // Editar Contacto
         { formId: 'formEditarContacto', phoneInputId: 'telefono_editar_visible', hiddenInputName: 'telefono_editar' },
-        // Añadir Invitado Manual (Evento)
         { formId: 'formAgregarInvitacion', phoneInputId: 'telefono_manual', hiddenInputName: 'telefono_manual' }
     ];
 
-    // Función para inicializar un selector de país para un campo de teléfono
     async function initializePhoneInput(form, phoneInput, hiddenInputName) {
         if (!form || !phoneInput) return;
 
-        // 1. Crear la estructura HTML del selector
         const wrapper = document.createElement('div');
         wrapper.className = 'input-group';
 
@@ -27,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function () {
         hiddenFullNumberInput.type = 'hidden';
         hiddenFullNumberInput.name = hiddenInputName;
 
-        // Reemplazar el input original con la nueva estructura
         phoneInput.parentNode.insertBefore(wrapper, phoneInput);
         wrapper.appendChild(countrySelect);
         wrapper.appendChild(phoneInput);
@@ -36,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
         phoneInput.placeholder = 'Número Móvil';
         phoneInput.required = true;
 
-        // 2. Cargar datos y popular el selector
         try {
             const response = await fetch(URL_PATH + 'core/customassets/js/countries.json');
             const countries = await response.json();
@@ -45,47 +72,50 @@ document.addEventListener('DOMContentLoaded', function () {
                 const option = document.createElement('option');
                 option.value = country.code;
                 option.dataset.dialCode = country.dial_code;
-                option.textContent = `${country.flag} ${country.code} (${country.dial_code})`;
+                // --- INICIO DE CAMBIOS ---
+                // Corregido para mostrar bandera y código correctamente
+                option.textContent = `${country.flag} ${country.dial_code}`;
+                // --- FIN DE CAMBIOS ---
                 countrySelect.appendChild(option);
             });
+            
+            // --- INICIO DE CAMBIOS ---
+            // Guardar la instancia para acceso futuro
+            const instance = {
+                countrySelect,
+                phoneInput,
+                countries,
+                updateFullNumber: function() {
+                    const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+                    const dialCode = selectedOption.dataset.dialCode;
+                    const phoneNumber = phoneInput.value.replace(/\D/g, '');
+                    hiddenFullNumberInput.value = dialCode + phoneNumber;
+                }
+            };
+            window.phoneInputManager.instances[phoneInput.id] = instance;
+            // --- FIN DE CAMBIOS ---
 
-            // 3. Detectar el país del usuario
             try {
-                // --- INICIO DE CAMBIOS ---
-                // Se utiliza una API más confiable que no requiere clave para HTTPS
                 const geoResponse = await fetch('https://ipinfo.io/json');
                 const geoData = await geoResponse.json();
-                // La nueva API devuelve el código en la propiedad "country"
                 if (geoData.country) {
                     countrySelect.value = geoData.country;
                 }
-                // --- FIN DE CAMBIOS ---
             } catch (error) {
                 console.warn('No se pudo detectar la geolocalización, se usará un valor por defecto.');
-                countrySelect.value = 'CO'; // Fallback a Colombia
+                countrySelect.value = 'CO';
             }
+            
+            countrySelect.addEventListener('change', instance.updateFullNumber);
+            phoneInput.addEventListener('input', instance.updateFullNumber);
 
-            // 4. Función para actualizar el número completo
-            function updateFullNumber() {
-                const selectedOption = countrySelect.options[countrySelect.selectedIndex];
-                const dialCode = selectedOption.dataset.dialCode;
-                const phoneNumber = phoneInput.value.replace(/\D/g, ''); // Limpiar no dígitos
-                hiddenFullNumberInput.value = dialCode + phoneNumber;
-            }
-
-            // 5. Añadir listeners para actualizar en tiempo real
-            countrySelect.addEventListener('change', updateFullNumber);
-            phoneInput.addEventListener('input', updateFullNumber);
-
-            // Inicializar valor
-            updateFullNumber();
+            instance.updateFullNumber();
 
         } catch (error) {
             console.error('Error al cargar la lista de países:', error);
         }
     }
 
-    // Inicializar todos los campos de teléfono definidos en la configuración
     PHONE_INPUTS_CONFIG.forEach(config => {
         const form = document.getElementById(config.formId);
         const phoneInput = document.getElementById(config.phoneInputId);
