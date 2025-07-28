@@ -38,7 +38,7 @@ $contactos = $datos['contactos'];
             
             const phoneInput = document.getElementById('telefono_editar_visible');
             if(phoneInput && contacto.telefono) {
-                phoneInput.value = contacto.telefono.substring(3); 
+                phoneInput.value = contacto.telefono.substring(3);
             }
         }
      }">
@@ -86,6 +86,87 @@ $contactos = $datos['contactos'];
 			</div>
 		</div>
 		<div class="card-body p-0">
+			<?php if (empty($contactos)): ?>
+				<div class="text-center py-5">
+					<i class="bi bi-journal-x" style="font-size: 4rem; color: #6c757d;"></i>
+					<h4 class="mt-3">Tu libreta de direcciones está vacía</h4>
+				</div>
+			<?php else: ?>
+				<div class="table-responsive">
+					<table class="table table-hover align-middle mb-0">
+						<thead class="table-light">
+							<tr>
+								<th class="text-center ps-3" style="width: 50px;"><input class="form-check-input" type="checkbox" @click="seleccionarTodos()"></th>
+								<th scope="col">Nombre</th>
+								<th scope="col">Email</th>
+								<th scope="col">Teléfono</th>
+								<th scope="col">Fuente de Registro</th>
+								<th scope="col">Evento de Origen</th>
+								<th scope="col">Habeas Data</th>
+								<th scope="col" class="text-end pe-3">Acciones</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ($contactos as $contacto): ?>
+								<tr>
+									<td class="text-center ps-3"><input class="form-check-input" type="checkbox" name="contactos[]" value="<?php echo $contacto->id; ?>" @change="actualizarSeleccionados()"></td>
+									<td><strong><?php echo htmlspecialchars($contacto->nombre); ?></strong></td>
+									<td><?php echo htmlspecialchars($contacto->email); ?></td>
+									<td><?php echo htmlspecialchars($contacto->telefono ?? 'N/A'); ?></td>
+									<td>
+										<?php
+										switch ($contacto->fuente_registro) {
+											case 'Micrositio':
+												echo '<span class="badge bg-primary"><i class="bi bi-globe me-1"></i> Micrositio</span>';
+												break;
+											case 'Importacion_CSV':
+												echo '<span class="badge bg-success"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Importado</span>';
+												break;
+											default:
+												echo '<span class="badge bg-secondary"><i class="bi bi-pencil-square me-1"></i> Manual</span>';
+												break;
+										}
+										?>
+									</td>
+									<td>
+										<?php if (!empty($contacto->evento_origen_nombre)): ?>
+											<a href="<?php echo URL_PATH . 'evento/gestionar/' . $contacto->id_evento_origen; ?>">
+												<?php echo htmlspecialchars($contacto->evento_origen_nombre); ?>
+											</a>
+										<?php else: ?>
+											<span class="text-muted">N/A</span>
+										<?php endif; ?>
+									</td>
+									<td class="text-center">
+										<?php if ($contacto->acepta_habeas_data): ?>
+											<span class="badge bg-success" title="Aceptado"><i class="bi bi-check-circle-fill"></i></span>
+										<?php else: ?>
+											<span class="badge bg-danger" title="No Aceptado"><i class="bi bi-x-circle-fill"></i></span>
+										<?php endif; ?>
+									</td>
+									<td class="text-end pe-3">
+										<button class="btn btn-sm btn-warning" title="Editar"
+											@click="prepararEdicion(<?php echo htmlspecialchars(json_encode($contacto)); ?>)"
+											data-bs-toggle="modal" data-bs-target="#modalEditarContacto">
+											<i class="bi bi-pencil-fill"></i>
+										</button>
+										<button class="btn btn-sm btn-secondary" title="Archivar"
+											@click="prepararAccion('archivar', <?php echo $contacto->id; ?>)"
+											data-bs-toggle="modal" data-bs-target="#modalAccionContacto">
+											<i class="bi bi-archive-fill"></i>
+										</button>
+										<button class="btn btn-sm btn-danger" title="Eliminar"
+											@click="prepararAccion('eliminar', <?php echo $contacto->id; ?>)"
+											data-bs-toggle="modal" data-bs-target="#modalAccionContacto">
+											<i class="bi bi-trash-fill"></i>
+										</button>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			<?php endif; ?>
 		</div>
 	</div>
 
@@ -114,6 +195,13 @@ $contactos = $datos['contactos'];
 					<button type="submit" class="btn btn-primary">Guardar Contacto</button>
 				</div>
 			</form>
+		</div>
+	</div>
+
+	<div class="modal fade" id="modalImportarCSV" tabindex="-1" aria-labelledby="modalImportarLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+			</div>
 		</div>
 	</div>
 
@@ -148,9 +236,20 @@ $contactos = $datos['contactos'];
 			</div>
 		</div>
 	</div>
+
+	<div class="modal fade" id="modalAccionContacto" tabindex="-1" aria-labelledby="modalAccionLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+			</div>
+		</div>
+	</div>
 </div>
 
 <script>
 	const URL_PATH = '<?php echo URL_PATH; ?>';
 </script>
 <script src="<?php echo URL_PATH; ?>core/customassets/js/country-codes.js"></script>
+
+<?php
+// El footer_panel.php se carga automáticamente desde el controlador.
+?>

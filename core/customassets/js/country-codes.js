@@ -51,7 +51,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // 3. Detectar el país del usuario
             try {
-                const geoResponse = await fetch('http://ip-api.com/json/?fields=countryCode');
+                // --- INICIO DE CAMBIOS ---
+                const geoResponse = await fetch('https://ip-api.com/json/?fields=countryCode');
+                // --- FIN DE CAMBIOS ---
                 const geoData = await geoResponse.json();
                 if (geoData.countryCode) {
                     countrySelect.value = geoData.countryCode;
