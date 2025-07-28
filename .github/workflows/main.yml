@@ -1,3 +1,6 @@
+name: Deploy VOCATORID on push
+
+on:
   push:
     branches:
       - main
