@@ -436,7 +436,6 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 
 <script>
 	document.addEventListener('DOMContentLoaded', function() {
-		// --- GRÁFICOS (SIN CAMBIOS) ---
 		const ctx = document.getElementById('dynamicChart').getContext('2d');
 		const estadoEvento = '<?php echo $evento->estado; ?>';
 		let chartData = (estadoEvento === 'En Curso' || estadoEvento === 'Finalizado') ? {
@@ -514,7 +513,6 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 			});
 		}
 
-		// --- MAPA (SIN CAMBIOS) ---
 		<?php if ($evento->modo != 'Virtual' && !empty($evento->latitud)): ?>
 			const lat = <?php echo $evento->latitud; ?>;
 			const lng = <?php echo $evento->longitud; ?>;
@@ -525,7 +523,6 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 			L.marker([lat, lng]).addTo(map).bindPopup('<b><?php echo htmlspecialchars($evento->nombre_evento); ?></b>').openPopup();
 		<?php endif; ?>
 
-		// --- ALERTA (SIN CAMBIOS) ---
 		const alertElement = document.getElementById('autoCloseAlert');
 		if (alertElement) {
 			setTimeout(function() {
@@ -534,7 +531,6 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 			}, 8000);
 		}
 
-		// --- IMPLEMENTACIÓN DE LISTA DE INVITADOS CON VANILLA JS (SIN CAMBIOS) ---
 		const invitadosData = <?php echo json_encode($invitados); ?> || [];
 		const tbody = document.getElementById('invitados-tbody');
 		const searchInput = document.getElementById('searchInput');
@@ -559,7 +555,7 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 		};
 
 		const renderTable = (filter) => {
-			tbody.innerHTML = ''; // Limpiar la tabla
+			tbody.innerHTML = '';
 
 			if (!invitadosData || invitadosData.length === 0) {
 				tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Aún no has agregado invitados a este evento.</td></tr>`;
@@ -614,3 +610,8 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 		renderTable('');
 	});
 </script>
+
+<script>
+	const URL_PATH = '<?php echo URL_PATH; ?>';
+</script>
+<script src="<?php echo URL_PATH; ?>core/customassets/js/country-codes.js"></script>

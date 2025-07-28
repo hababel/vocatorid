@@ -15,8 +15,7 @@ $evento = $datos['evento'];
 		<div class="card shadow-sm">
 			<div class="card-body p-4" x-data="{ aceptado: false }">
 				<p>Por favor, completa tus datos para recibir tu enlace de acceso personal.</p>
-				<form action="<?php echo URL_PATH; ?>asistencia/procesarRegistroAnonimo" method="POST">
-
+				<form id="formRegistroAnonimo" action="<?php echo URL_PATH; ?>asistencia/procesarRegistroAnonimo" method="POST">
 					<input type="hidden" name="id_evento" value="<?php echo $evento->id; ?>">
 
 					<div class="form-floating mb-3">
@@ -29,11 +28,11 @@ $evento = $datos['evento'];
 						<label for="email">Correo Electrónico</label>
 					</div>
 
-					<div class="form-floating mb-3">
-						<input type="tel" class="form-control" id="telefono" name="telefono" placeholder="3001234567" required>
-						<label for="telefono">Teléfono Móvil (Requerido)</label>
-						<div class="form-text px-2">Necesario para verificar tu asistencia con nuestros sistemas de seguridad.</div>
+					<div class="mb-3">
+						<label class="form-label">Teléfono Móvil (Requerido)</label>
+						<input type="tel" class="form-control" id="telefono">
 					</div>
+
 					<div class="form-check mb-3">
 						<input class="form-check-input" type="checkbox" name="acepta_habeas_data" id="acepta_habeas_data" x-model="aceptado" required>
 						<label class="form-check-label" for="acepta_habeas_data">
@@ -51,3 +50,8 @@ $evento = $datos['evento'];
 		</div>
 	</div>
 </div>
+
+<script>
+	const URL_PATH = '<?php echo URL_PATH; ?>';
+</script>
+<script src="<?php echo URL_PATH; ?>core/customassets/js/country-codes.js"></script>
