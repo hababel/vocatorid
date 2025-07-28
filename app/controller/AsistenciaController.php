@@ -121,14 +121,21 @@ class AsistenciaController extends Controller
 
 		$contacto = $this->contactoModel->obtenerPorId($invitacion->id_contacto);
 
-		if (!$this->_enviarCorreoClaveVisual($contacto->email, $contacto->nombre, $imagen_aleatoria, $color_aleatorio)) {
-			echo json_encode(['exito' => false, 'mensaje' => 'No pudimos enviar la clave visual a tu correo. Verifica que tu email sea correcto e inténtalo de nuevo.']);
+		// --- INICIO DE CAMBIOS ---
+		// Construcción del mensaje SMS
+		$nombre_imagen = substr($imagen_aleatoria, 0, -4); // Elimina la extensión .jpg
+		$mensaje_sms = "Clave VocatorID: Imagen de un {$nombre_imagen} y color {$color_aleatorio}.";
+
+		// Envío del SMS en lugar del correo electrónico
+		if (!$this->mailService->enviarSMS($contacto->telefono, $mensaje_sms)) {
+			echo json_encode(['exito' => false, 'mensaje' => 'No pudimos enviar la clave visual a tu teléfono. Verifica que tu número sea correcto e inténtalo de nuevo.']);
 			return;
 		}
+		// --- FIN DE CAMBIOS ---
 
 		echo json_encode([
 			'exito' => true,
-			'mensaje' => 'Verificación inicial correcta. Revisa tu correo para obtener tu clave visual y completar el registro.',
+			'mensaje' => 'Verificación inicial correcta. Revisa tu teléfono para obtener tu clave visual y completar el registro.',
 			'siguiente_paso' => URL_PATH . 'asistencia/mostrarDesafio/' . $token_acceso
 		]);
 	}
@@ -268,12 +275,10 @@ class AsistenciaController extends Controller
 			$telefono = trim($_POST['telefono']);
 			$acepta_habeas_data = isset($_POST['acepta_habeas_data']) ? 1 : 0;
 
-			// --- INICIO DE CAMBIOS ---
 			// Validación del teléfono
 			if (empty($telefono) || !is_numeric($telefono) || strlen($telefono) < 7 || strlen($telefono) > 15) {
 				die('Error: El número de teléfono es obligatorio y debe ser válido.');
 			}
-			// --- FIN DE CAMBIOS ---
 
 			if ($acepta_habeas_data == 0) {
 				die('Error: Debe aceptar la política de tratamiento de datos para continuar.');
@@ -288,7 +293,7 @@ class AsistenciaController extends Controller
 				'id_organizador' => $evento->id_organizador,
 				'nombre' => $nombre,
 				'email' => $email,
-				'telefono' => $telefono, // Guardar el teléfono
+				'telefono' => $telefono,
 				'acepta_habeas_data' => $acepta_habeas_data,
 				'fuente_registro' => 'Micrositio',
 				'lote_importacion' => null,
@@ -328,22 +333,5 @@ class AsistenciaController extends Controller
 	{
 		header('Location: ' . URL_PATH . $ruta);
 		exit();
-	}
-
-	private function _enviarCorreoClaveVisual($email, $nombre, $imagen, $color)
-	{
-		$traductor_colores_es = [
-			'Blue'   => 'Azul',
-			'Green'  => 'Verde',
-			'Red'    => 'Rojo',
-			'Yellow' => 'Amarillo',
-			'Orange' => 'Naranja',
-			'Purple' => 'Morado'
-		];
-		$color_para_correo = $traductor_colores_es[$color] ?? $color;
-
-		$asunto = "Tu Clave Visual para el Evento";
-		$cuerpoHtml = "<p>Hola {$nombre},</p><p>Para completar tu registro de asistencia, selecciona la imagen de un <strong>" . substr($imagen, 0, -4) . "</strong> y el color <strong>{$color_para_correo}</strong>.</p><p>Este código es de un solo uso.</p>";
-		return $this->mailService->enviarEmail($email, $nombre, $asunto, $cuerpoHtml);
 	}
 }
