@@ -1,17 +1,16 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Objeto global para gestionar los inputs de teléfono
+    // Objeto global para gestionar los inputs de teléfono y permitir la comunicación con Alpine.js
     window.phoneInputManager = {
         instances: {},
         
-        // --- INICIO DE CAMBIOS ---
-        // Nueva función para establecer el valor de un campo de teléfono internacional
+        // Nueva función para establecer el valor de un campo de teléfono a partir de un número completo
         setPhoneNumber: function(phoneInputId, fullNumber) {
             const instance = this.instances[phoneInputId];
             if (!instance || !fullNumber) return;
 
             const { countrySelect, phoneInput, countries } = instance;
 
-            // Encontrar el código de país que mejor coincida
+            // Encontrar el código de país que mejor coincida (el más largo posible)
             let bestMatch = null;
             countries.forEach(country => {
                 if (fullNumber.startsWith(country.dial_code)) {
@@ -22,17 +21,17 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (bestMatch) {
+                // Si se encuentra una coincidencia, establecer los valores correctos
                 countrySelect.value = bestMatch.code;
                 const nationalNumber = fullNumber.substring(bestMatch.dial_code.length);
                 phoneInput.value = nationalNumber;
             } else {
-                // Si no hay coincidencia, simplemente mostrar el número
+                // Si no hay coincidencia (poco probable), mostrar el número completo
                 phoneInput.value = fullNumber;
             }
-             // Actualizar el valor oculto
+             // Asegurarse de que el valor oculto se actualice
             instance.updateFullNumber();
         }
-        // --- FIN DE CAMBIOS ---
     };
 
     const PHONE_INPUTS_CONFIG = [
@@ -50,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const countrySelect = document.createElement('select');
         countrySelect.className = 'form-select';
-        countrySelect.style.maxWidth = '120px';
+        countrySelect.style.maxWidth = '130px'; // Ajuste de ancho
 
         const hiddenFullNumberInput = document.createElement('input');
         hiddenFullNumberInput.type = 'hidden';
@@ -72,15 +71,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const option = document.createElement('option');
                 option.value = country.code;
                 option.dataset.dialCode = country.dial_code;
-                // --- INICIO DE CAMBIOS ---
-                // Corregido para mostrar bandera y código correctamente
+                // --- CORRECCIÓN DE VISUALIZACIÓN ---
                 option.textContent = `${country.flag} ${country.dial_code}`;
-                // --- FIN DE CAMBIOS ---
                 countrySelect.appendChild(option);
             });
             
-            // --- INICIO DE CAMBIOS ---
-            // Guardar la instancia para acceso futuro
             const instance = {
                 countrySelect,
                 phoneInput,
@@ -93,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             };
             window.phoneInputManager.instances[phoneInput.id] = instance;
-            // --- FIN DE CAMBIOS ---
 
             try {
                 const geoResponse = await fetch('https://ipinfo.io/json');

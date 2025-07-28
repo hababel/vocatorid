@@ -37,7 +37,7 @@ $contactos = $datos['contactos'];
             document.getElementById('email_editar').value = contacto.email;
             
             // --- INICIO DE CAMBIOS ---
-            // Llamar a la nueva función global para establecer el número de teléfono
+            // Se utiliza el nuevo phoneInputManager para parsear y establecer el número correctamente
             if (window.phoneInputManager && typeof window.phoneInputManager.setPhoneNumber === 'function') {
                 window.phoneInputManager.setPhoneNumber('telefono_editar_visible', contacto.telefono);
             }
@@ -201,8 +201,6 @@ $contactos = $datos['contactos'];
 	</div>
 
 	<div class="modal fade" id="modalImportarCSV" tabindex="-1" aria-labelledby="modalImportarLabel" aria-hidden="true">
-		<div class="modal-dialog">
-		</div>
 	</div>
 
 	<div class="modal fade" id="modalEditarContacto" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
@@ -238,8 +236,6 @@ $contactos = $datos['contactos'];
 	</div>
 
 	<div class="modal fade" id="modalAccionContacto" tabindex="-1" aria-labelledby="modalAccionLabel" aria-hidden="true">
-		<div class="modal-dialog">
-		</div>
 	</div>
 </div>
 
