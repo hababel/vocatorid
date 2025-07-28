@@ -38,12 +38,21 @@ class ContactoController extends Controller
 	public function crear()
 	{
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+			// --- INICIO DE CAMBIOS ---
+			$telefono = trim($_POST['telefono'] ?? '');
+			if (empty($telefono) || !is_numeric($telefono) || strlen($telefono) < 7 || strlen($telefono) > 15) {
+				$this->crearMensaje('error', 'El número de teléfono es obligatorio y debe ser un número válido.');
+				$this->redireccionar('contacto/index');
+				return;
+			}
+			// --- FIN DE CAMBIOS ---
+
 			$datos = [
 				'id_organizador' => $_SESSION['id_organizador'],
 				'nombre' => trim($_POST['nombre']),
 				'email' => trim($_POST['email']),
-				'telefono' => trim($_POST['telefono']) ?? '',
-				'acepta_habeas_data' => 0, // CORRECCIÓN: El organizador no puede aceptar por el usuario.
+				'telefono' => $telefono,
+				'acepta_habeas_data' => 0,
 				'fuente_registro' => 'Manual',
 				'lote_importacion' => null,
 				'id_evento_origen' => null
@@ -67,12 +76,21 @@ class ContactoController extends Controller
 	public function actualizar()
 	{
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+			// --- INICIO DE CAMBIOS ---
+			$telefono = trim($_POST['telefono_editar'] ?? '');
+			if (empty($telefono) || !is_numeric($telefono) || strlen($telefono) < 7 || strlen($telefono) > 15) {
+				$this->crearMensaje('error', 'El número de teléfono es obligatorio y debe ser un número válido.');
+				$this->redireccionar('contacto/index');
+				return;
+			}
+			// --- FIN DE CAMBIOS ---
+
 			$datos = [
 				'id_contacto' => $_POST['id_contacto_editar'],
 				'id_organizador' => $_SESSION['id_organizador'],
 				'nombre' => trim($_POST['nombre_editar']),
 				'email' => trim($_POST['email_editar']),
-				'telefono' => trim($_POST['telefono_editar']) ?? ''
+				'telefono' => $telefono
 			];
 
 			if (empty($datos['nombre']) || empty($datos['email'])) {
@@ -113,18 +131,28 @@ class ContactoController extends Controller
 				if (($gestor = fopen($archivo, "r")) !== FALSE) {
 					fgetcsv($gestor, 1000, ";");
 					while (($datos_fila = fgetcsv($gestor, 1000, ";")) !== FALSE) {
-						if (count($datos_fila) >= 2) {
+						// --- INICIO DE CAMBIOS ---
+						// Ahora se esperan 3 columnas como mínimo (nombre, email, teléfono)
+						if (count($datos_fila) >= 3) {
+							$telefono_csv = isset($datos_fila[2]) ? trim($datos_fila[2]) : '';
 							$datos_contacto = [
 								'id_organizador' => $_SESSION['id_organizador'],
 								'nombre' => trim($datos_fila[0]),
 								'email' => trim($datos_fila[1]),
-								'telefono' => isset($datos_fila[2]) ? trim($datos_fila[2]) : '',
-								'acepta_habeas_data' => 0, // CORRECCIÓN: El organizador no puede aceptar por el usuario.
+								'telefono' => $telefono_csv,
+								'acepta_habeas_data' => 0,
 								'fuente_registro' => 'Importacion_CSV',
 								'lote_importacion' => $lote_id,
 								'id_evento_origen' => null
 							];
-							if (!empty($datos_contacto['nombre']) && !empty($datos_contacto['email']) && filter_var($datos_contacto['email'], FILTER_VALIDATE_EMAIL)) {
+
+							// Validación estricta para cada fila
+							if (
+								!empty($datos_contacto['nombre']) &&
+								!empty($datos_contacto['email']) &&
+								filter_var($datos_contacto['email'], FILTER_VALIDATE_EMAIL) &&
+								!empty($telefono_csv) && is_numeric($telefono_csv) && strlen($telefono_csv) >= 7 && strlen($telefono_csv) <= 15
+							) {
 								if ($this->contactoModel->crear($datos_contacto)) {
 									$importados++;
 								} else {
@@ -133,10 +161,11 @@ class ContactoController extends Controller
 							} else {
 								$errores++;
 							}
+							// --- FIN DE CAMBIOS ---
 						}
 					}
 					fclose($gestor);
-					$this->crearMensaje('exito', "$importados contactos importados. $errores filas no se pudieron importar (duplicados o datos incompletos).");
+					$this->crearMensaje('exito', "$importados contactos importados. $errores filas no se pudieron importar (datos duplicados, incompletos o inválidos).");
 				} else {
 					$this->crearMensaje('error', 'No se pudo abrir el archivo CSV.');
 				}
@@ -228,8 +257,10 @@ class ContactoController extends Controller
 		header('Content-Type: text/csv');
 		header('Content-Disposition: attachment; filename="' . $nombre_archivo . '"');
 		$output = fopen('php://output', 'w');
-		fputcsv($output, ['Nombre Completo', 'Email', 'Telefono'], ';');
+		// --- INICIO DE CAMBIOS ---
+		fputcsv($output, ['Nombre Completo', 'Email', 'Telefono (Obligatorio)'], ';');
 		fputcsv($output, ['Juan Perez', 'juan.perez@ejemplo.com', '3001234567'], ';');
+		// --- FIN DE CAMBIOS ---
 		fclose($output);
 		exit();
 	}

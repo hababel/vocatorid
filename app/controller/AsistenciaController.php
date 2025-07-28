@@ -265,7 +265,15 @@ class AsistenciaController extends Controller
 			$id_evento = $_POST['id_evento'];
 			$nombre = trim($_POST['nombre']);
 			$email = trim($_POST['email']);
+			$telefono = trim($_POST['telefono']);
 			$acepta_habeas_data = isset($_POST['acepta_habeas_data']) ? 1 : 0;
+
+			// --- INICIO DE CAMBIOS ---
+			// Validación del teléfono
+			if (empty($telefono) || !is_numeric($telefono) || strlen($telefono) < 7 || strlen($telefono) > 15) {
+				die('Error: El número de teléfono es obligatorio y debe ser válido.');
+			}
+			// --- FIN DE CAMBIOS ---
 
 			if ($acepta_habeas_data == 0) {
 				die('Error: Debe aceptar la política de tratamiento de datos para continuar.');
@@ -280,7 +288,7 @@ class AsistenciaController extends Controller
 				'id_organizador' => $evento->id_organizador,
 				'nombre' => $nombre,
 				'email' => $email,
-				'telefono' => '',
+				'telefono' => $telefono, // Guardar el teléfono
 				'acepta_habeas_data' => $acepta_habeas_data,
 				'fuente_registro' => 'Micrositio',
 				'lote_importacion' => null,

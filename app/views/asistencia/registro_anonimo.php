@@ -29,16 +29,19 @@ $evento = $datos['evento'];
 						<label for="email">Correo Electrónico</label>
 					</div>
 
-					<!-- NUEVO: Checkbox para Habeas Data -->
+					<div class="form-floating mb-3">
+						<input type="tel" class="form-control" id="telefono" name="telefono" placeholder="3001234567" required>
+						<label for="telefono">Teléfono Móvil (Requerido)</label>
+						<div class="form-text px-2">Necesario para verificar tu asistencia con nuestros sistemas de seguridad.</div>
+					</div>
 					<div class="form-check mb-3">
-						<input class="form-check-input" type="checkbox" name="acepta_habeas_data" id="acepta_habeas_data" x-model="aceptado">
+						<input class="form-check-input" type="checkbox" name="acepta_habeas_data" id="acepta_habeas_data" x-model="aceptado" required>
 						<label class="form-check-label" for="acepta_habeas_data">
 							Acepto la <a href="#" target="_blank">política de tratamiento de datos personales</a>.
 						</label>
 					</div>
 
 					<div class="d-grid mt-4">
-						<!-- El botón está deshabilitado hasta que se marque el checkbox -->
 						<button class="btn btn-primary btn-lg" type="submit" :disabled="!aceptado">
 							Registrarme y Recibir mi Acceso
 						</button>
@@ -48,7 +51,3 @@ $evento = $datos['evento'];
 		</div>
 	</div>
 </div>
-
-<?php
-// El footer.php se carga automáticamente desde el controlador.
-?>

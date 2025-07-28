@@ -9,7 +9,6 @@ $contactos = $datos['contactos'];
 	}
 </style>
 
-<!-- Contenedor principal -->
 <div class="container-fluid px-md-4 py-4"
 	x-data="{ 
         seleccionados: [],
@@ -169,7 +168,6 @@ $contactos = $datos['contactos'];
 		</div>
 	</div>
 
-	<!-- Modales y Offcanvas -->
 	<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNuevoContacto" aria-labelledby="offcanvasNuevoContactoLabel">
 		<div class="offcanvas-header">
 			<h5 id="offcanvasNuevoContactoLabel">Añadir Nuevo Contacto</h5>
@@ -188,8 +186,9 @@ $contactos = $datos['contactos'];
 					<input type="email" class="form-control" id="email" name="email" required>
 				</div>
 				<div class="mb-3">
-					<label for="telefono" class="form-label">Teléfono (Opcional)</label>
-					<input type="tel" class="form-control" id="telefono" name="telefono">
+					<label for="telefono" class="form-label">Teléfono Móvil <span class="text-danger">*</span></label>
+					<input type="tel" class="form-control" id="telefono" name="telefono" required>
+					<div class="form-text">Requerido para el envío de SMS en registros de asistencia (VAP).</div>
 				</div>
 				<div class="d-grid mt-4">
 					<button type="submit" class="btn btn-primary">Guardar Contacto</button>
@@ -215,7 +214,7 @@ $contactos = $datos['contactos'];
 										<li>La primera fila debe ser la cabecera (será ignorada).</li>
 										<li>Columna 1: <strong>Nombre Completo</strong></li>
 										<li>Columna 2: <strong>Email</strong></li>
-										<li>Columna 3: <strong>Teléfono (Opcional)</strong></li>
+										<li>Columna 3: <strong>Teléfono (Obligatorio)</strong></li>
 									</ul>
 								</div>
 								<a href="<?php echo URL_PATH; ?>contacto/descargarPlantilla" class="btn btn-outline-primary">
@@ -257,8 +256,8 @@ $contactos = $datos['contactos'];
 							<input type="email" class="form-control" id="email_editar" name="email_editar" required>
 						</div>
 						<div class="mb-3">
-							<label for="telefono_editar" class="form-label">Teléfono (Opcional)</label>
-							<input type="tel" class="form-control" id="telefono_editar" name="telefono_editar">
+							<label for="telefono_editar" class="form-label">Teléfono Móvil <span class="text-danger">*</span></label>
+							<input type="tel" class="form-control" id="telefono_editar" name="telefono_editar" required>
 						</div>
 					</div>
 					<div class="modal-footer">
@@ -304,7 +303,3 @@ $contactos = $datos['contactos'];
 		</div>
 	</div>
 </div>
-
-<?php
-// El footer_panel.php se carga automáticamente desde el controlador.
-?>
