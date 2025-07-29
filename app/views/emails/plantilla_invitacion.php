@@ -114,8 +114,8 @@
 				<div class="icon">🤔</div>
 				<h2 class="card-title">¿Puedes Asistir?</h2>
 				<p class="card-text">Por favor, haz clic en uno de los botones para confirmar. Esto es muy importante para la organización.</p>
-				<a href="<?php echo $enlace_confirmar; ?>" target="_blank" class="button" style="background-color: #34c759; color: white; margin-right: 10px;">✅ Sí, confirmo</a>
-				<a href="<?php echo $enlace_rechazar; ?>" target="_blank" class="button" style="background-color: #ff3b30; color: white;">❌ No puedo</a>
+                                <a href="<?php echo $enlace_confirmar; ?>" target="_blank" rel="noopener noreferrer" class="button" style="background-color: #34c759; color: white; margin-right: 10px;">✅ Sí, confirmo</a>
+                                <a href="<?php echo $enlace_rechazar; ?>" target="_blank" rel="noopener noreferrer" class="button" style="background-color: #ff3b30; color: white;">❌ No puedo</a>
 			</div>
 
 			<div class="action-card" style="background-color: #eaf2ff;">
@@ -126,7 +126,7 @@
 					<img src="<?php echo $qr_code_url; ?>" alt="Tu Código QR Personal" style="max-width: 150px;" class="qr-code">
 				</p>
 				<p class="card-text" style="background-color: #ffffff; padding: 15px; border-radius: 8px;"><strong>Opción 2 (Virtual):</strong> Haz clic en el botón de abajo.<br><br>
-					<a href="<?php echo $enlace_bienvenida; ?>" target="_blank" class="button" style="background-color: #007aff; color: white;" >➡️ Iniciar Registro Virtual</a>
+                                        <a href="<?php echo $enlace_bienvenida; ?>" target="_blank" rel="noopener noreferrer" class="button" style="background-color: #007aff; color: white;" >➡️ Iniciar Registro Virtual</a>
 				</p>
 			</div>
 
@@ -134,7 +134,7 @@
 				<div class="icon">ℹ️</div>
 				<h2 class="card-title">¿Quieres Saber Más?</h2>
 				<p class="card-text">Consulta la agenda, ubicación y otros detalles en el sitio web del evento.</p>
-				<a href="<?php echo $enlace_micrositio; ?>" target="_blank" class="button" style="background-color: #e5e5e5; color: #1c1c1e;">Ver Detalles del Evento</a>
+                                <a href="<?php echo $enlace_micrositio; ?>" target="_blank" rel="noopener noreferrer" class="button" style="background-color: #e5e5e5; color: #1c1c1e;">Ver Detalles del Evento</a>
 			</div>
 		</div>
 
