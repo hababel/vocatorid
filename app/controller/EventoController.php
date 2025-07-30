@@ -8,15 +8,19 @@ class EventoController extends Controller
 
 	private $eventoModel;
 	private $invitacionModel;
-	private $tokenAsistenciaModel;
-	private $mailService;
+        private $tokenAsistenciaModel;
+        private $retoModel;
+        private $registroRetoModel;
+        private $mailService;
 
 	public function __construct()
 	{
 		$this->eventoModel = $this->modelo('EventoModel');
 		$this->invitacionModel = $this->modelo('InvitacionModel');
-		$this->tokenAsistenciaModel = $this->modelo('TokenAsistenciaModel');
-		$this->mailService = new BrevoMailService();
+                $this->tokenAsistenciaModel = $this->modelo('TokenAsistenciaModel');
+                $this->retoModel = $this->modelo('RetoModel');
+                $this->registroRetoModel = $this->modelo('RegistroRetoModel');
+                $this->mailService = new BrevoMailService();
 	}
 
 	private function verificarSesion()
@@ -231,9 +235,9 @@ class EventoController extends Controller
 		require_once APP_BASE_PHYSICAL_PATH . '/app/views/eventos/kiosco.php';
 	}
 
-	public function generarTokenKiosco($id_evento)
-	{
-		header('Content-Type: application/json');
+        public function generarTokenKiosco($id_evento)
+        {
+                header('Content-Type: application/json');
 		$token_dinamico = strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
                 // El token se actualiza periódicamente en el kiosco y antes
                 // expiraba a los 15 segundos, lo que resultaba demasiado
@@ -246,8 +250,44 @@ class EventoController extends Controller
 			echo json_encode(['exito' => true, 'token' => $token_dinamico, 'expira_en' => $expiracion_segundos]);
 		} else {
 			echo json_encode(['exito' => false, 'mensaje' => 'No se pudo generar un nuevo token.']);
-		}
-	}
+                }
+        }
+
+        public function dashboard($id_evento)
+        {
+                $this->verificarSesion();
+
+                $evento = $this->eventoModel->obtenerPorId($id_evento);
+                if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                        die('Acceso denegado.');
+                }
+
+                $registros = $this->registroRetoModel->obtenerPorEvento($id_evento);
+
+                $datos = [
+                        'titulo' => 'Dashboard de Retos',
+                        'evento' => $evento,
+                        'registros' => $registros
+                ];
+                $this->vistaPanel('eventos/dashboard', $datos);
+        }
+
+        public function emitirRetoManual($id_evento)
+        {
+                header('Content-Type: application/json');
+
+                $codigo = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+                $inicio = (new DateTime())->format('Y-m-d H:i:s');
+                $fin = (new DateTime('+5 minutes'))->format('Y-m-d H:i:s');
+
+                $id_reto = $this->retoModel->crear($id_evento, 'Reto manual', $inicio, $fin);
+                if ($id_reto) {
+                        $this->retoModel->actualizarCodigo($id_reto, $codigo);
+                        echo json_encode(['exito' => true, 'id_reto' => $id_reto, 'codigo' => $codigo]);
+                } else {
+                        echo json_encode(['exito' => false]);
+                }
+        }
 
 	private function crearMensaje($tipo, $mensaje)
 	{

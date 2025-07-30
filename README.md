@@ -1,5 +1,6 @@
 # vocatorid
 
-Este proyecto gestiona eventos y el registro de asistencia mediante códigos QR.
+Este proyecto gestiona eventos y el registro de asistencia. Originalmente se basaba en códigos QR,
+pero ahora incluye un sistema de verificación mediante retos dinámicos para eventos virtuales.
 
 Para los organizadores existe una guía con pasos a seguir cuando el kiosco muestra que el código QR es inválido o ha expirado. Puedes consultarla en [docs/guia_manejo_error_qr.md](docs/guia_manejo_error_qr.md).
