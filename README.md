@@ -1,6 +1,12 @@
 # vocatorid
 
-Este proyecto gestiona eventos y el registro de asistencia. Originalmente se basaba en códigos QR,
-pero ahora la verificación para eventos virtuales se realiza mediante retos dinámicos que pueden programarse en distintos momentos.
+Este proyecto gestiona eventos y el registro de asistencia.
+Inicialmente se usaban códigos QR para validar la participación,
+pero actualmente los eventos virtuales se confirman mediante
+**retos dinámicos**. El organizador puede programar varios retos
+en distintos momentos para cumplir los requisitos de presencia.
 
-Para los organizadores existe una guía con pasos a seguir cuando el kiosco muestra que el código QR es inválido o ha expirado. Puedes consultarla en [docs/guia_manejo_error_qr.md](docs/guia_manejo_error_qr.md).
+Para ver el detalle del nuevo flujo consulta
+[docs/verificacion_retos.md](docs/verificacion_retos.md). La guía
+sobre problemas con QR solo aplica al kiosco físico y está en
+[docs/guia_manejo_error_qr.md](docs/guia_manejo_error_qr.md).
