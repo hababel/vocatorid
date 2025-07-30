@@ -114,17 +114,17 @@ $invitacion = $datos['invitacion'];
 				</div>
 			</div>
 
-			<div class="text-center">
-				<p>Para completar el proceso, necesitarás escanear el código QR que se mostrará en la pantalla del evento.</p>
-				<?php if ($evento->modo == 'Presencial'): ?>
-					<p><strong>Asegúrate de estar en el lugar del evento y tener activado el GPS de tu dispositivo.</strong></p>
-				<?php elseif ($evento->modo == 'Hibrido'): ?>
-					<p><strong>Si asistes de forma presencial, asegúrate de estar en el lugar del evento y tener activado el GPS de tu dispositivo.</strong></p>
-				<?php endif; ?>
-				<a href="<?php echo URL_PATH; ?>asistencia/iniciarVerificacion/<?php echo $invitacion->token_acceso; ?>" class="btn btn-primary btn-lg mt-3">
-					<i class="bi bi-qr-code-scan me-2"></i> Iniciar Registro de Asistencia
-				</a>
-			</div>
+                        <div class="text-center">
+                                <p>Mantén esta página abierta. El organizador activará retos en momentos específicos para confirmar tu asistencia.</p>
+                                <?php if ($evento->modo == 'Presencial'): ?>
+                                        <p><strong>Asegúrate de estar en el lugar del evento y tener activado el GPS de tu dispositivo.</strong></p>
+                                <?php elseif ($evento->modo == 'Hibrido'): ?>
+                                        <p><strong>Si asistes de forma presencial, asegúrate de estar en el lugar del evento y tener activado el GPS de tu dispositivo.</strong></p>
+                                <?php endif; ?>
+                                <a href="<?php echo URL_PATH; ?>asistencia/inicio/<?php echo $invitacion->token_acceso; ?>" class="btn btn-primary btn-lg mt-3">
+                                        <i class="bi bi-shield-check me-2"></i> Iniciar Registro de Asistencia
+                                </a>
+                        </div>
 
 		<?php endif; ?>
 
