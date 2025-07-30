@@ -16,6 +16,12 @@ $controllerName = $router->getController();
 $methodName = $router->getMethod();
 $params = $router->getParams();
 
+// Ruta abreviada: /asistencia/[token]
+if ($controllerName === 'asistencia' && preg_match('/^[a-f0-9]{64}$/i', $methodName)) {
+        $params = [$methodName];
+        $methodName = 'inicio';
+}
+
 // --- LISTA BLANCA ACTUALIZADA ---
 $rutas_publicas = [
 	// Controlador 'organizador'
@@ -31,8 +37,9 @@ $rutas_publicas = [
 	'organizador/noAutorizado',
 
 	// Controlador 'asistencia'
-	'asistencia/bienvenida',
-	'asistencia/iniciarVerificacion',     // <-- RUTA AÑADIDA: Permite el acceso a la página del escáner.
+        'asistencia/bienvenida',
+        'asistencia/inicio',
+        'asistencia/iniciarVerificacion',     // <-- RUTA AÑADIDA: Permite el acceso a la página del escáner.
 	'asistencia/mostrarDesafio',         // <-- RUTA AÑADIDA: Permite el acceso a la verificación con clave visual.
 	'asistencia/procesarClaveVisual',    // <-- RUTA AÑADIDA: Permite el envío del formulario de la clave visual.
 	'asistencia/registroAnonimo',
