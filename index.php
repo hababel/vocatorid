@@ -39,12 +39,8 @@ $rutas_publicas = [
 	// Controlador 'asistencia'
         'asistencia/bienvenida',
         'asistencia/inicio',
-        'asistencia/iniciarVerificacion',     // <-- RUTA AÑADIDA: Permite el acceso a la página del escáner.
-	'asistencia/mostrarDesafio',         // <-- RUTA AÑADIDA: Permite el acceso a la verificación con clave visual.
-	'asistencia/procesarClaveVisual',    // <-- RUTA AÑADIDA: Permite el envío del formulario de la clave visual.
 	'asistencia/registroAnonimo',
 	'asistencia/procesarRegistroAnonimo',
-	'asistencia/procesarVerificacion', // API para kiosco virtual
 	'asistencia/procesarQrPersonal', // API para kiosco físico
 
 	// Controlador 'invitacion'
