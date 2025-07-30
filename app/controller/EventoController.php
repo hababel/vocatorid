@@ -289,6 +289,27 @@ class EventoController extends Controller
                 }
         }
 
+        public function obtenerRegistrosReto($id_evento)
+        {
+                header('Content-Type: application/json');
+
+                $evento = $this->eventoModel->obtenerPorId($id_evento);
+                if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                        echo json_encode(['exito' => false]);
+                        return;
+                }
+
+                $registros = $this->registroRetoModel->obtenerPorEvento($id_evento);
+                $totalRetos = count($registros);
+                $completados = 0;
+                foreach ($registros as $r) {
+                        if ($r->correcto) $completados++;
+                }
+                $porcentaje = $totalRetos > 0 ? round(($completados / $totalRetos) * 100, 2) : 0;
+
+                echo json_encode(['exito' => true, 'porcentaje' => $porcentaje, 'registros' => $registros]);
+        }
+
 	private function crearMensaje($tipo, $mensaje)
 	{
 		if (session_status() === PHP_SESSION_NONE) {

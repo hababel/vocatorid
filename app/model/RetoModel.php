@@ -44,5 +44,18 @@ class RetoModel extends Model
             return false;
         }
     }
+
+    public function obtenerProximoPorEvento($id_evento)
+    {
+        $sql = "SELECT * FROM retos WHERE id_evento = :id_evento AND hora_inicio > NOW() ORDER BY hora_inicio ASC LIMIT 1";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_evento', $id_evento, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_OBJ);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
 }
 ?>

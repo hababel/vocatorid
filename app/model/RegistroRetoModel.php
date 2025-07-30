@@ -45,5 +45,19 @@ class RegistroRetoModel extends Model
             return [];
         }
     }
+
+    public function yaCompletado($id_reto, $id_invitacion)
+    {
+        $sql = "SELECT id FROM registros_retos WHERE id_reto = :id_reto AND id_invitacion = :id_invitacion AND correcto = 1 LIMIT 1";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_reto', $id_reto, PDO::PARAM_INT);
+            $stmt->bindParam(':id_invitacion', $id_invitacion, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
 }
 ?>

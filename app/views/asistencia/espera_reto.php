@@ -19,6 +19,7 @@ $invitacion = $datos['invitacion'];
                     <button id="btn-nuevo" class="btn btn-outline-secondary">Generar Nuevo Reto</button>
                 </div>
                 <div id="mensaje" class="mt-3"></div>
+                <div id="contador" class="text-muted small"></div>
             </div>
         </div>
     </div>
@@ -26,6 +27,8 @@ $invitacion = $datos['invitacion'];
 <script>
 const token = '<?php echo $invitacion->token_acceso; ?>';
 let idReto = 0;
+let proximoEn = 0;
+let countdownInterval = null;
 
 async function cargarReto() {
     const res = await fetch('<?php echo URL_PATH; ?>asistencia/obtenerRetoActivo/' + token);
@@ -33,8 +36,16 @@ async function cargarReto() {
     if (data.exito) {
         idReto = data.id_reto;
         document.getElementById('codigo-reto').textContent = data.codigo;
+        document.getElementById('contador').textContent = '';
+        if(countdownInterval) clearInterval(countdownInterval);
+    } else if (data.proximo_en) {
+        idReto = 0;
+        proximoEn = data.proximo_en;
+        iniciarContador();
+        document.getElementById('codigo-reto').textContent = '---';
     } else {
         document.getElementById('codigo-reto').textContent = '---';
+        document.getElementById('contador').textContent = '';
     }
 }
 
@@ -47,11 +58,28 @@ async function verificar() {
     const res = await fetch('<?php echo URL_PATH; ?>asistencia/validarReto', { method:'POST', body: formData });
     const data = await res.json();
     if (data.exito) {
-        document.getElementById('mensaje').innerHTML = '<span class="text-success">Código correcto</span>';
+        document.getElementById('mensaje').innerHTML = '<span class="text-success">✅ Asistencia registrada</span>';
+        document.getElementById('btn-verificar').disabled = true;
+        document.getElementById('btn-nuevo').disabled = true;
     } else {
-        document.getElementById('mensaje').innerHTML = '<span class="text-danger">Código incorrecto</span>';
+        const msg = data.mensaje ? data.mensaje : 'Código incorrecto';
+        document.getElementById('mensaje').innerHTML = '<span class="text-danger">' + msg + '</span>';
     }
     document.getElementById('respuesta').value = '';
+}
+
+function iniciarContador(){
+    if(countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+        if(proximoEn <= 0){
+            clearInterval(countdownInterval);
+            document.getElementById('contador').textContent = 'Activando nuevo reto...';
+            cargarReto();
+            return;
+        }
+        document.getElementById('contador').textContent = 'Próximo reto en ' + proximoEn + 's';
+        proximoEn--;
+    },1000);
 }
 
 document.getElementById('btn-verificar').addEventListener('click', verificar);

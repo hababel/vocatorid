@@ -294,16 +294,23 @@ class AsistenciaController extends Controller
                 }
 
                 $reto = $this->retoModel->obtenerActivoPorEvento($invitacion->id_evento);
-                if (!$reto) {
-                        echo json_encode(['exito' => false]);
+                if ($reto) {
+                        echo json_encode([
+                                'exito' => true,
+                                'id_reto' => $reto->id,
+                                'codigo' => $reto->codigo_actual
+                        ]);
                         return;
                 }
 
-                echo json_encode([
-                        'exito' => true,
-                        'id_reto' => $reto->id,
-                        'codigo' => $reto->codigo_actual
-                ]);
+                $proximo = $this->retoModel->obtenerProximoPorEvento($invitacion->id_evento);
+                if ($proximo) {
+                        $inicio = new DateTime($proximo->hora_inicio);
+                        $segundos = $inicio->getTimestamp() - time();
+                        echo json_encode(['exito' => false, 'proximo_en' => $segundos]);
+                } else {
+                        echo json_encode(['exito' => false]);
+                }
         }
 
         public function validarReto()
@@ -330,8 +337,18 @@ class AsistenciaController extends Controller
                         return;
                 }
 
+                if ($this->registroRetoModel->yaCompletado($reto->id, $invitacion->id)) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'Reto ya completado.']);
+                        return;
+                }
+
                 $correcto = (strtoupper($reto->codigo_actual) === $codigo) ? 1 : 0;
                 $this->registroRetoModel->crear($reto->id, $invitacion->id, $codigo, $_SERVER['REMOTE_ADDR'] ?? '', $correcto);
+
+                if ($correcto == 1 && !$this->registroAsistenciaModel->yaRegistrado($invitacion->id)) {
+                        $this->registroAsistenciaModel->crear($invitacion->id, 'Reto ' . $reto->id);
+                        $this->invitacionModel->marcarAsistenciaVerificada($invitacion->id);
+                }
 
                 echo json_encode(['exito' => $correcto == 1]);
         }
