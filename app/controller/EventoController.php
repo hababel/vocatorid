@@ -310,6 +310,112 @@ class EventoController extends Controller
                 echo json_encode(['exito' => true, 'porcentaje' => $porcentaje, 'registros' => $registros]);
         }
 
+        public function crearReto($id_evento)
+        {
+                $this->verificarSesion();
+                header('Content-Type: application/json');
+
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                        echo json_encode(['exito' => false]);
+                        return;
+                }
+
+                $evento = $this->eventoModel->obtenerPorId($id_evento);
+                if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                        echo json_encode(['exito' => false]);
+                        return;
+                }
+
+                $descripcion = trim($_POST['descripcion'] ?? '');
+                $hora_inicio = trim($_POST['hora_inicio'] ?? '');
+                $hora_fin = trim($_POST['hora_fin'] ?? '');
+
+                $id_reto = $this->retoModel->crear($id_evento, $descripcion, $hora_inicio, $hora_fin);
+                if ($id_reto) {
+                        echo json_encode(['exito' => true]);
+                } else {
+                        echo json_encode(['exito' => false]);
+                }
+        }
+
+        public function activarReto($id_reto)
+        {
+                $this->verificarSesion();
+                header('Content-Type: application/json');
+
+                $reto = $this->retoModel->obtenerPorId($id_reto);
+                if (!$reto) {
+                        echo json_encode(['exito' => false]);
+                        return;
+                }
+
+                $evento = $this->eventoModel->obtenerPorId($reto->id_evento);
+                if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                        echo json_encode(['exito' => false]);
+                        return;
+                }
+
+                if ($this->retoModel->activarAhora($id_reto)) {
+                        echo json_encode(['exito' => true]);
+                } else {
+                        echo json_encode(['exito' => false]);
+                }
+        }
+
+        public function estadoRetos($id_evento)
+        {
+                $this->verificarSesion();
+                header('Content-Type: application/json');
+
+                $evento = $this->eventoModel->obtenerPorId($id_evento);
+                if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                        echo json_encode(['exito' => false]);
+                        return;
+                }
+
+                $retos = $this->retoModel->obtenerPorEvento($id_evento);
+                $ahora = new DateTime();
+                $lista = [];
+                foreach ($retos as $r) {
+                        $estado = 'Pendiente';
+                        if ($ahora >= new DateTime($r->hora_inicio) && $ahora <= new DateTime($r->hora_fin)) {
+                                $estado = 'Activo';
+                        } elseif ($ahora > new DateTime($r->hora_fin)) {
+                                $estado = 'Finalizado';
+                        }
+                        $lista[] = [
+                                'id' => $r->id,
+                                'descripcion' => $r->descripcion,
+                                'hora_inicio' => $r->hora_inicio,
+                                'hora_fin' => $r->hora_fin,
+                                'estado' => $estado,
+                                'completados' => (int)$r->completados
+                        ];
+                }
+                echo json_encode(['exito' => true, 'retos' => $lista]);
+        }
+
+        public function detalleReto($id_reto)
+        {
+                $this->verificarSesion();
+                header('Content-Type: application/json');
+
+                $reto = $this->retoModel->obtenerPorId($id_reto);
+                if (!$reto) {
+                        echo json_encode(['exito' => false]);
+                        return;
+                }
+
+                $evento = $this->eventoModel->obtenerPorId($reto->id_evento);
+                if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                        echo json_encode(['exito' => false]);
+                        return;
+                }
+
+                $registros = $this->registroRetoModel->obtenerPorReto($id_reto);
+                echo json_encode(['exito' => true, 'registros' => $registros]);
+        }
+
 	private function crearMensaje($tipo, $mensaje)
 	{
 		if (session_status() === PHP_SESSION_NONE) {

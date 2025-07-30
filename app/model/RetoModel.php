@@ -57,5 +57,55 @@ class RetoModel extends Model
             return false;
         }
     }
+
+    public function obtenerPorEvento($id_evento)
+    {
+        $sql = "SELECT r.*, (SELECT COUNT(*) FROM registros_asistencia ra WHERE ra.coordenadas_checkin = CONCAT('Reto ', r.id)) AS completados FROM retos r WHERE r.id_evento = :id_evento ORDER BY r.hora_inicio ASC";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_evento', $id_evento, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    public function obtenerPorId($id_reto)
+    {
+        $sql = "SELECT * FROM retos WHERE id = :id_reto";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_reto', $id_reto, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_OBJ);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function activarAhora($id_reto)
+    {
+        $reto = $this->obtenerPorId($id_reto);
+        if (!$reto) {
+            return false;
+        }
+        $inicio_original = new DateTime($reto->hora_inicio);
+        $fin_original = new DateTime($reto->hora_fin);
+        $diff = $fin_original->getTimestamp() - $inicio_original->getTimestamp();
+        $nuevo_inicio = date('Y-m-d H:i:s');
+        $nuevo_fin = date('Y-m-d H:i:s', time() + $diff);
+
+        $sql = "UPDATE retos SET hora_inicio = :inicio, hora_fin = :fin WHERE id = :id";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':inicio', $nuevo_inicio);
+            $stmt->bindParam(':fin', $nuevo_fin);
+            $stmt->bindParam(':id', $id_reto, PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
 }
 ?>
