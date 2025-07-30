@@ -16,14 +16,6 @@ $controllerName = $router->getController();
 $methodName = $router->getMethod();
 $params = $router->getParams();
 
-if ($controllerName === 'asistencia') {
-        $permitidos = ['bienvenida','iniciarVerificacion','mostrarDesafio','procesarClaveVisual','registroAnonimo','procesarRegistroAnonimo','procesarVerificacion','procesarQrPersonal','accesoDirecto','obtenerReto','validarReto'];
-        if (!in_array($methodName, $permitidos)) {
-                $params = [$methodName];
-                $methodName = 'accesoDirecto';
-        }
-}
-
 // --- LISTA BLANCA ACTUALIZADA ---
 $rutas_publicas = [
 	// Controlador 'organizador'
@@ -41,15 +33,12 @@ $rutas_publicas = [
 	// Controlador 'asistencia'
 	'asistencia/bienvenida',
 	'asistencia/iniciarVerificacion',     // <-- RUTA AÑADIDA: Permite el acceso a la página del escáner.
-        'asistencia/mostrarDesafio',         // <-- RUTA AÑADIDA: Permite el acceso a la verificación con clave visual.
-        'asistencia/procesarClaveVisual',    // <-- RUTA AÑADIDA: Permite el envío del formulario de la clave visual.
-        'asistencia/registroAnonimo',
-        'asistencia/procesarRegistroAnonimo',
-        'asistencia/procesarVerificacion', // API para kiosco virtual
-        'asistencia/procesarQrPersonal', // API para kiosco físico
-        'asistencia/accesoDirecto',
-        'asistencia/obtenerReto',
-        'asistencia/validarReto',
+	'asistencia/mostrarDesafio',         // <-- RUTA AÑADIDA: Permite el acceso a la verificación con clave visual.
+	'asistencia/procesarClaveVisual',    // <-- RUTA AÑADIDA: Permite el envío del formulario de la clave visual.
+	'asistencia/registroAnonimo',
+	'asistencia/procesarRegistroAnonimo',
+	'asistencia/procesarVerificacion', // API para kiosco virtual
+	'asistencia/procesarQrPersonal', // API para kiosco físico
 
 	// Controlador 'invitacion'
 	'invitacion/responder'

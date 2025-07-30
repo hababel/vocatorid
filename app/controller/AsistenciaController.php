@@ -8,22 +8,20 @@ class AsistenciaController extends Controller
 
 	private $invitacionModel;
 	private $eventoModel;
-        private $registroAsistenciaModel;
-        private $tokenAsistenciaModel;
-        private $contactoModel;
-        private $retoModel;
-        private $mailService;
+	private $registroAsistenciaModel;
+	private $tokenAsistenciaModel;
+	private $contactoModel;
+	private $mailService;
 
-        public function __construct()
-        {
-                $this->invitacionModel = $this->modelo('InvitacionModel');
-                $this->eventoModel = $this->modelo('EventoModel');
-                $this->registroAsistenciaModel = $this->modelo('RegistroAsistenciaModel');
-                $this->tokenAsistenciaModel = $this->modelo('TokenAsistenciaModel');
-                $this->contactoModel = $this->modelo('ContactoModel');
-                $this->retoModel = $this->modelo('RetoModel');
-                $this->mailService = new BrevoMailService();
-        }
+	public function __construct()
+	{
+		$this->invitacionModel = $this->modelo('InvitacionModel');
+		$this->eventoModel = $this->modelo('EventoModel');
+		$this->registroAsistenciaModel = $this->modelo('RegistroAsistenciaModel');
+		$this->tokenAsistenciaModel = $this->modelo('TokenAsistenciaModel');
+		$this->contactoModel = $this->modelo('ContactoModel');
+		$this->mailService = new BrevoMailService();
+	}
 
 	public function bienvenida($token_acceso = '')
 	{
@@ -268,9 +266,9 @@ class AsistenciaController extends Controller
 		$this->vista('asistencia/registro_anonimo', $datos);
 	}
 
-        public function procesarRegistroAnonimo()
-        {
-                if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+	public function procesarRegistroAnonimo()
+	{
+		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			$id_evento = $_POST['id_evento'];
 			$nombre = trim($_POST['nombre']);
 			$email = trim($_POST['email']);
@@ -319,65 +317,9 @@ class AsistenciaController extends Controller
 				die('Hubo un error al registrar el contacto. Es posible que el correo ya esté en uso.');
 			}
 		} else {
-                        $this->redireccionar('');
-                }
-        }
-
-        /**
-         * Nueva ruta: /asistencia/{token}
-         * Muestra la interfaz de verificación con retos dinámicos.
-         */
-        public function accesoDirecto($token_acceso = '')
-        {
-                if (empty($token_acceso)) {
-                        die('Acceso denegado: Token no proporcionado.');
-                }
-                $invitacion = $this->invitacionModel->obtenerPorToken($token_acceso);
-                if (!$invitacion) {
-                        die('Enlace de invitación no válido o caducado.');
-                }
-                $datos = ['titulo' => 'Verificación de Asistencia', 'invitacion' => $invitacion];
-                $this->vista('asistencia/reto', $datos);
-        }
-
-        public function obtenerReto($token_acceso = '')
-        {
-                header('Content-Type: application/json');
-                $invitacion = $this->invitacionModel->obtenerPorToken($token_acceso);
-                if (!$invitacion) {
-                        echo json_encode(['exito' => false]);
-                        return;
-                }
-                $reto = $this->retoModel->obtenerActivoPorEvento($invitacion->id_evento);
-                if (!$reto) {
-                        echo json_encode(['exito' => false]);
-                        return;
-                }
-                $codigo = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
-                $this->retoModel->actualizarCodigo($reto->id, $codigo);
-                echo json_encode(['exito' => true, 'id_reto' => $reto->id, 'codigo' => $codigo]);
-        }
-
-        public function validarReto()
-        {
-                header('Content-Type: application/json');
-                $token = $_POST['token'] ?? '';
-                $id_reto = $_POST['id_reto'] ?? 0;
-                $codigo = strtoupper(trim($_POST['codigo'] ?? ''));
-
-                $invitacion = $this->invitacionModel->obtenerPorToken($token);
-                if (!$invitacion) {
-                        echo json_encode(['exito' => false, 'mensaje' => 'Invitación no válida']);
-                        return;
-                }
-                if (!$this->retoModel->validarCodigo($id_reto, $codigo)) {
-                        echo json_encode(['exito' => false, 'mensaje' => 'Código incorrecto o expirado']);
-                        return;
-                }
-                $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-                $this->registroAsistenciaModel->registrarReto($invitacion->id, $id_reto, $ip, $codigo);
-                echo json_encode(['exito' => true, 'mensaje' => 'Verificación registrada']);
-        }
+			$this->redireccionar('');
+		}
+	}
 
 	private function crearMensaje($tipo, $mensaje)
 	{
