@@ -233,7 +233,7 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 							<div class="btn-group" role="group">
 								<?php if ($evento->estado != 'Borrador'): ?>
 									<?php if ($evento->modo == 'Virtual' || $evento->modo == 'Hibrido'): ?>
-										<a href="<?php echo URL_PATH; ?>evento/kiosco/<?php echo $evento->id; ?>" target="_blank" class="btn btn-sm btn-outline-info" title="Abrir Kiosco Virtual"><i class="bi bi-display-fill me-1"></i>Kiosco Virtual</a>
+                                                                       <a href="<?php echo URL_PATH; ?>evento/kioskoVirtual/<?php echo $evento->id; ?>" target="_blank" class="btn btn-sm btn-outline-info" title="Abrir Kiosco Virtual"><i class="bi bi-display-fill me-1"></i>Kiosco Virtual</a>
 									<?php endif; ?>
 									<?php if ($evento->modo == 'Presencial' || $evento->modo == 'Hibrido'): ?>
 										<a href="<?php echo URL_PATH; ?>kioscoFisico/scanner/<?php echo $evento->id; ?>" target="_blank" class="btn btn-sm btn-outline-dark" title="Abrir Kiosco Físico"><i class="bi bi-qr-code-scan me-1"></i>Kiosco Físico</a>

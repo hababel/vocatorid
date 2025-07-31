@@ -6,17 +6,22 @@ $invitacion = $datos['invitacion'];
     <div class="w-100" style="max-width: 600px; margin:auto;">
         <div class="text-center mb-4">
             <h1 class="h2 mb-3">Verificación de Asistencia</h1>
-            <p class="lead text-muted">Ingresa el código que se muestra en pantalla.</p>
+            <p class="lead text-muted">Ingresa el código que ves en la pantalla del organizador.</p>
+        </div>
+        <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <div>
+                <strong>Paso 1 – Completado</strong><br>
+                <small>Sabemos que eres tú, porque accediste con tu enlace único de seguridad.</small>
+            </div>
         </div>
         <div class="card shadow-sm">
             <div class="card-body text-center" id="reto-container">
-                <h3 id="codigo-reto" class="display-4">---</h3>
                 <div class="mb-3">
-                    <input type="text" id="respuesta" class="form-control text-center" placeholder="Código" maxlength="6">
+                    <input type="text" id="respuesta" class="form-control text-center" placeholder="Código" maxlength="30">
                 </div>
                 <div class="d-grid gap-2">
                     <button id="btn-verificar" class="btn btn-primary">Verificar</button>
-                    <button id="btn-nuevo" class="btn btn-outline-secondary">Generar Nuevo Reto</button>
                 </div>
                 <div id="mensaje" class="mt-3"></div>
                 <div id="contador" class="text-muted small"></div>
@@ -35,16 +40,13 @@ async function cargarReto() {
     const data = await res.json();
     if (data.exito) {
         idReto = data.id_reto;
-        document.getElementById('codigo-reto').textContent = data.codigo;
         document.getElementById('contador').textContent = '';
         if(countdownInterval) clearInterval(countdownInterval);
     } else if (data.proximo_en) {
         idReto = 0;
         proximoEn = data.proximo_en;
         iniciarContador();
-        document.getElementById('codigo-reto').textContent = '---';
     } else {
-        document.getElementById('codigo-reto').textContent = '---';
         document.getElementById('contador').textContent = '';
     }
 }
@@ -60,7 +62,6 @@ async function verificar() {
     if (data.exito) {
         document.getElementById('mensaje').innerHTML = '<span class="text-success">✅ Asistencia registrada</span>';
         document.getElementById('btn-verificar').disabled = true;
-        document.getElementById('btn-nuevo').disabled = true;
     } else {
         const msg = data.mensaje ? data.mensaje : 'Código incorrecto';
         document.getElementById('mensaje').innerHTML = '<span class="text-danger">' + msg + '</span>';
@@ -83,7 +84,6 @@ function iniciarContador(){
 }
 
 document.getElementById('btn-verificar').addEventListener('click', verificar);
-document.getElementById('btn-nuevo').addEventListener('click', cargarReto);
 setInterval(cargarReto, 15000);
 cargarReto();
 </script>

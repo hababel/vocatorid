@@ -5,6 +5,15 @@ require_once APP_BASE_PHYSICAL_PATH . '/app/services/BrevoMailService.php';
 
 class AsistenciaController extends Controller
 {
+        /**
+         * Paleta de colores disponibles para la generación del código
+         * visual. Esta lista es utilizada por otros componentes de la
+         * aplicación mediante la propiedad estática.
+         */
+        public static $colores = [
+                'Rojo', 'Verde', 'Azul', 'Amarillo',
+                'Negro', 'Blanco', 'Naranja', 'Morado'
+        ];
 
 	private $invitacionModel;
 	private $eventoModel;
