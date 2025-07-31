@@ -416,6 +416,33 @@ class EventoController extends Controller
                 echo json_encode(['exito' => true, 'registros' => $registros]);
         }
 
+        public function exportarRetos($id_evento)
+        {
+                $this->verificarSesion();
+
+                $evento = $this->eventoModel->obtenerPorId($id_evento);
+                if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                        die('Acceso denegado.');
+                }
+
+                $registros = $this->registroRetoModel->obtenerCompletadosPorEvento($id_evento);
+
+                if (ob_get_level()) {
+                        ob_end_clean();
+                }
+
+                $nombre_archivo = 'reporte_retos_evento_' . $id_evento . '.csv';
+                header('Content-Type: text/csv');
+                header('Content-Disposition: attachment; filename="' . $nombre_archivo . '"');
+                $output = fopen('php://output', 'w');
+                fputcsv($output, ['ID Reto', 'Descripción', 'Invitado', 'Email', 'Fecha'], ';');
+                foreach ($registros as $r) {
+                        fputcsv($output, [$r->id_reto, $r->descripcion, $r->nombre, $r->email, $r->fecha_registro], ';');
+                }
+                fclose($output);
+                exit();
+        }
+
 	private function crearMensaje($tipo, $mensaje)
 	{
 		if (session_status() === PHP_SESSION_NONE) {

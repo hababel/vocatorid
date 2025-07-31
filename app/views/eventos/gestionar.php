@@ -261,8 +261,9 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 	<ul class="nav nav-tabs mb-4" id="eventoTab" role="tablist">
 		<li class="nav-item" role="presentation"><button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="true"><i class="bi bi-speedometer2 me-2"></i>Dashboard</button></li>
 		<li class="nav-item" role="presentation"><button class="nav-link" id="invitados-tab" data-bs-toggle="tab" data-bs-target="#invitados" type="button" role="tab" aria-controls="invitados" aria-selected="false"><i class="bi bi-people-fill me-2"></i>Gestionar Invitados (<?php echo $total_invitados; ?>)</button></li>
-		<li class="nav-item" role="presentation"><button class="nav-link" id="agregar-invitados-tab" data-bs-toggle="tab" data-bs-target="#agregar-invitados" type="button" role="tab" aria-controls="agregar-invitados" aria-selected="false"><i class="bi bi-person-plus-fill me-2"></i>Agregar Invitados</button></li>
-	</ul>
+               <li class="nav-item" role="presentation"><button class="nav-link" id="agregar-invitados-tab" data-bs-toggle="tab" data-bs-target="#agregar-invitados" type="button" role="tab" aria-controls="agregar-invitados" aria-selected="false"><i class="bi bi-person-plus-fill me-2"></i>Agregar Invitados</button></li>
+               <li class="nav-item" role="presentation"><button class="nav-link" id="retos-tab" data-bs-toggle="tab" data-bs-target="#retos" type="button" role="tab" aria-controls="retos" aria-selected="false"><i class="bi bi-shield-check me-2"></i>Gestión de Retos de Asistencia</button></li>
+       </ul>
 	<div class="tab-content" id="eventoTabContent">
 		<div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
 			<div class="row g-4">
@@ -428,10 +429,67 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 			</div>
 		</div>
 
-		<div class="tab-pane fade" id="agregar-invitados" role="tabpanel" aria-labelledby="agregar-invitados-tab">
-			<?php require_once 'agregar_invitados.php'; ?>
-		</div>
-	</div>
+               <div class="tab-pane fade" id="agregar-invitados" role="tabpanel" aria-labelledby="agregar-invitados-tab">
+                       <?php require_once 'agregar_invitados.php'; ?>
+               </div>
+
+               <div class="tab-pane fade" id="retos" role="tabpanel" aria-labelledby="retos-tab">
+                       <div class="card shadow-sm mb-4">
+                               <div class="card-body">
+                                       <form id="form-reto" class="row g-2 mb-3">
+                                               <div class="col-md-4">
+                                                       <input type="text" name="descripcion" class="form-control" placeholder="Descripción del Reto" required>
+                                               </div>
+                                               <div class="col-md-3">
+                                                       <input type="datetime-local" name="hora_inicio" class="form-control" required>
+                                               </div>
+                                               <div class="col-md-3">
+                                                       <input type="datetime-local" name="hora_fin" class="form-control" required>
+                                               </div>
+                                               <div class="col-md-2 d-grid">
+                                                       <button class="btn btn-success">Crear Reto</button>
+                                               </div>
+                                       </form>
+                                       <div class="mb-2 text-end">
+                                               <a href="<?php echo URL_PATH; ?>evento/exportarRetos/<?php echo $evento->id; ?>" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-2"></i>Exportar Reporte</a>
+                                       </div>
+                                       <div class="table-responsive">
+                                               <table class="table table-sm">
+                                                       <thead>
+                                                               <tr>
+                                                                       <th>Descripción</th>
+                                                                       <th>Inicio</th>
+                                                                       <th>Fin</th>
+                                                                       <th>Estado</th>
+                                                                       <th>Completados</th>
+                                                                       <th>Acciones</th>
+                                                               </tr>
+                                                       </thead>
+                                                       <tbody id="lista-retos"></tbody>
+                                               </table>
+                                       </div>
+                               </div>
+                       </div>
+                       <div class="modal fade" id="detalleModal" tabindex="-1" aria-hidden="true">
+                               <div class="modal-dialog modal-lg">
+                                       <div class="modal-content">
+                                               <div class="modal-header">
+                                                       <h5 class="modal-title">Detalle de Reto</h5>
+                                                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                               </div>
+                                               <div class="modal-body">
+                                                       <div class="table-responsive">
+                                                               <table class="table table-sm">
+                                                                       <thead><tr><th>Invitado</th><th>Código</th><th>Fecha</th></tr></thead>
+                                                                       <tbody id="detalle-body"></tbody>
+                                                               </table>
+                                                       </div>
+                                               </div>
+                                       </div>
+                               </div>
+                       </div>
+               </div>
+       </div>
 </div>
 
 <script>
@@ -615,3 +673,8 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 	const URL_PATH = '<?php echo URL_PATH; ?>';
 </script>
 <script src="<?php echo URL_PATH; ?>core/customassets/js/country-codes.js"></script>
+<script>
+const URL_BASE = '<?php echo URL_PATH; ?>';
+const ID_EVENTO = <?php echo (int)$evento->id; ?>;
+</script>
+<script src="<?php echo URL_PATH; ?>core/customassets/js/retos_admin.js"></script>
