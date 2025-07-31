@@ -69,16 +69,25 @@ $evento = $datos['evento'];
 	}
 
 
-	.codigo-texto {
-		font-family: 'Share Tech Mono', monospace;
-		font-size: 4.5rem;
-		font-weight: 400;
-		letter-spacing: 0.5rem;
-		color: #fff;
-		line-height: 1;
-		margin-top: 1rem;
-		text-shadow: 0 0 10px rgba(13, 202, 240, 0.5);
-	}
+        .reto-visual {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 20px;
+                margin: 1.5rem 0;
+        }
+
+        .reto-img {
+                width: 80px;
+                height: 80px;
+                object-fit: contain;
+        }
+
+        .color-btn {
+                width: 50px;
+                height: 50px;
+                border: none;
+        }
 
 	.progress-container {
 		display: flex;
@@ -155,7 +164,11 @@ $evento = $datos['evento'];
 			<h1 class="event-title h2"><?php echo htmlspecialchars($evento->nombre_evento); ?></h1>
 
                         <p class="text-muted mt-4">Código vigente:</p>
-			<div id="codigo-texto" class="codigo-texto">CARGANDO...</div>
+                        <div class="reto-visual">
+                                <img id="fruta" class="reto-img" src="" alt="fruta">
+                                <button id="color-boton" class="color-btn"></button>
+                                <img id="animal" class="reto-img" src="" alt="animal">
+                        </div>
 
 			<div class="progress-container">
 				<div class="progress">
@@ -175,7 +188,9 @@ $evento = $datos['evento'];
 
 	<script>
                 document.addEventListener('DOMContentLoaded', function() {
-                        const codigoTextoElem = document.getElementById('codigo-texto');
+                        const frutaElem = document.getElementById('fruta');
+                        const animalElem = document.getElementById('animal');
+                        const colorBtn = document.getElementById('color-boton');
                         const progressBar = document.getElementById('progress-bar');
                         const minutosRestantesElem = document.getElementById('minutos-restantes');
                         let countdownInterval = null;
@@ -232,14 +247,17 @@ $evento = $datos['evento'];
                                         const data = await response.json();
 
                                         if (data.estado === 'activo') {
-                                                codigoTextoElem.textContent = data.codigo_actual;
+                                                frutaElem.src = data.fruta_img;
+                                                animalElem.src = data.animal_img;
+                                                colorBtn.style.backgroundColor = data.color_hex;
                                                 iniciarContador(data.tiempo_restante);
                                         } else {
-                                                codigoTextoElem.textContent = 'INACTIVO';
+                                                frutaElem.src = '';
+                                                animalElem.src = '';
+                                                colorBtn.style.backgroundColor = '#ffffff';
                                         }
                                 } catch (error) {
                                         console.error('Error al obtener el código:', error);
-                                        codigoTextoElem.textContent = 'ERROR';
                                 }
                         }
 
