@@ -17,28 +17,36 @@ class router
 		$this->setParams();
 	}
 
-	public function setUri()
-	{
-		// Obtenemos la URL y la limpiamos de la ruta base del proyecto si existe
-		$url = $_SERVER['REQUEST_URI'];
-		$base_path = str_replace('/index.php', '', $_SERVER['SCRIPT_NAME']);
-		$this->uri = str_replace($base_path, '', $url);
-		$this->uri = trim($this->uri, '/');
-	}
+        public function setUri()
+        {
+                // Obtenemos solo la ruta, sin la cadena de consulta
+                $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-	public function setController()
-	{
-		// El controlador es el primer segmento de la URI. Si está vacío, por defecto es 'organizador'.
-		$uri_parts = !empty($this->uri) ? explode('/', $this->uri) : ['organizador'];
-		$this->controller = $uri_parts[0] ?: 'organizador';
-	}
+                // Eliminamos la ruta base del proyecto si existe
+                $base_path = str_replace('/index.php', '', $_SERVER['SCRIPT_NAME']);
+                $this->uri = str_replace($base_path, '', $path);
+                $this->uri = trim($this->uri, '/');
+        }
 
-	public function setMethod()
-	{
-		// El método es el segundo segmento. Si no existe, por defecto es 'index'.
-		$uri_parts = !empty($this->uri) ? explode('/', $this->uri) : [];
-		$this->method = isset($uri_parts[1]) && !empty($uri_parts[1]) ? $uri_parts[1] : 'index';
-	}
+       public function setController()
+       {
+               // El controlador es el primer segmento de la URI. Si está vacío, por defecto es 'organizador'.
+                $uri_parts = !empty($this->uri) ? explode('/', $this->uri) : ['organizador'];
+                $controller = $uri_parts[0] ?: 'organizador';
+                // Si viene con la extensión .php, la eliminamos
+                $controller = preg_replace('/\.php$/', '', $controller);
+                $this->controller = $controller;
+       }
+
+       public function setMethod()
+       {
+               // El método es el segundo segmento. Si no existe, por defecto es 'index'.
+                $uri_parts = !empty($this->uri) ? explode('/', $this->uri) : [];
+                $method = isset($uri_parts[1]) && !empty($uri_parts[1]) ? $uri_parts[1] : 'index';
+                // También quitamos la extensión .php si existe
+                $method = preg_replace('/\.php$/', '', $method);
+                $this->method = $method;
+       }
 
 	public function setParams()
 	{
