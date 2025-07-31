@@ -10,9 +10,20 @@ class AsistenciaController extends Controller
          * visual. Esta lista es utilizada por otros componentes de la
          * aplicación mediante la propiedad estática.
          */
+        /**
+         * Mapa de colores utilizados en la Clave Visual. La clave es el nombre
+         * que debe escribir el usuario y el valor el código HEX que se
+         * presentará en pantalla.
+         */
         public static $colores = [
-                'Rojo', 'Verde', 'Azul', 'Amarillo',
-                'Negro', 'Blanco', 'Naranja', 'Morado'
+                'Rojo'     => '#FF0000',
+                'Verde'    => '#28a745',
+                'Azul'     => '#007bff',
+                'Amarillo' => '#ffc107',
+                'Negro'    => '#000000',
+                'Blanco'   => '#FFFFFF',
+                'Naranja'  => '#fd7e14',
+                'Morado'   => '#6f42c1'
         ];
 
 	private $invitacionModel;
@@ -142,11 +153,31 @@ class AsistenciaController extends Controller
 
                 $reto = $this->retoModel->obtenerActivoPorEvento($invitacion->id_evento);
                 if ($reto) {
-                        echo json_encode([
+                        $timestamp = isset($reto->codigo_actual_timestamp) ? strtotime($reto->codigo_actual_timestamp) : time();
+                        $ahora = time();
+
+                        if (empty($reto->codigo_actual) || ($ahora - $timestamp) >= 40) {
+                                $datos = generarCodigoFrutasColoresAnimales(self::$colores);
+                                $codigo = $datos['codigo'];
+                                if (method_exists($this->retoModel, 'actualizarCodigoYFecha')) {
+                                        $this->retoModel->actualizarCodigoYFecha($reto->id, $codigo);
+                                } else {
+                                        $this->retoModel->actualizarCodigo($reto->id, $codigo);
+                                }
+                                $reto->codigo_actual = $codigo;
+                                $timestamp = $ahora;
+                        } else {
+                                $datos = datosDesdeCodigoVisual($reto->codigo_actual, self::$colores);
+                        }
+
+                        $tiempo_restante = 40 - ($ahora - $timestamp);
+                        if ($tiempo_restante < 0) $tiempo_restante = 0;
+
+                        echo json_encode(array_merge([
                                 'exito' => true,
                                 'id_reto' => $reto->id,
-                                'codigo' => $reto->codigo_actual
-                        ]);
+                                'tiempo_restante' => $tiempo_restante
+                        ], $datos));
                         return;
                 }
 

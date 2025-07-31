@@ -119,10 +119,43 @@ function generarCodigoFrutasColoresAnimales($colores)
 {
         $recursos = obtenerRecursosClaveVisual();
 
-        $fruta = basename($recursos['frutas'][array_rand($recursos['frutas'])], '.jpg');
-        $animal = basename($recursos['animales'][array_rand($recursos['animales'])], '.jpg');
-        $color = $colores[array_rand($colores)];
+        $frutaArchivo = $recursos['frutas'][array_rand($recursos['frutas'])];
+        $animalArchivo = $recursos['animales'][array_rand($recursos['animales'])];
 
-        return $fruta . '-' . $color . '-' . $animal;
+        $fruta = basename($frutaArchivo, '.jpg');
+        $animal = basename($animalArchivo, '.jpg');
+
+        // $colores es un array asociativo nombre => hex
+        $colorNombre = array_rand($colores);
+        $colorHex = $colores[$colorNombre];
+
+        $codigo = $fruta . '-' . $colorNombre . '-' . $animal;
+
+        return [
+                'codigo' => $codigo,
+                'fruta_img'  => URL_PATH . 'core/img/clave_visual/frutas/' . $frutaArchivo,
+                'color_hex'  => $colorHex,
+                'animal_img' => URL_PATH . 'core/img/clave_visual/animales/' . $animalArchivo
+        ];
+}
+
+/**
+ * Devuelve las rutas de imágenes y el color HEX a partir del código
+ * almacenado en la base de datos.
+ */
+function datosDesdeCodigoVisual($codigo, $colores)
+{
+        $partes = explode('-', $codigo);
+        if (count($partes) !== 3) {
+                return null;
+        }
+
+        list($fruta, $colorNombre, $animal) = $partes;
+
+        return [
+                'fruta_img'  => URL_PATH . 'core/img/clave_visual/frutas/' . $fruta . '.jpg',
+                'color_hex'  => $colores[$colorNombre] ?? '#000000',
+                'animal_img' => URL_PATH . 'core/img/clave_visual/animales/' . $animal . '.jpg'
+        ];
 }
 

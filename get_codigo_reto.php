@@ -22,7 +22,8 @@ $timestamp = isset($reto->codigo_actual_timestamp) ? strtotime($reto->codigo_act
 $ahora = time();
 
 if (empty($reto->codigo_actual) || ($ahora - $timestamp) >= 40) {
-    $codigo = generarCodigoFrutasColoresAnimales(AsistenciaController::$colores);
+    $datos = generarCodigoFrutasColoresAnimales(AsistenciaController::$colores);
+    $codigo = $datos['codigo'];
     if (method_exists($retoModel, 'actualizarCodigoYFecha')) {
         $retoModel->actualizarCodigoYFecha($reto->id, $codigo);
     } else {
@@ -30,6 +31,8 @@ if (empty($reto->codigo_actual) || ($ahora - $timestamp) >= 40) {
     }
     $reto->codigo_actual = $codigo;
     $timestamp = $ahora;
+} else {
+    $datos = datosDesdeCodigoVisual($reto->codigo_actual, AsistenciaController::$colores);
 }
 
 $tiempo_restante = 40 - ($ahora - $timestamp);
@@ -37,8 +40,7 @@ if ($tiempo_restante < 0) {
     $tiempo_restante = 0;
 }
 
-echo json_encode([
-    'codigo_actual' => $reto->codigo_actual,
+echo json_encode(array_merge($datos, [
     'tiempo_restante' => $tiempo_restante,
     'estado' => 'activo'
-]);
+]));
