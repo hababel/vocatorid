@@ -59,5 +59,24 @@ class RegistroRetoModel extends Model
             return false;
         }
     }
+
+    public function obtenerCompletadosPorEvento($id_evento)
+    {
+        $sql = "SELECT rr.id_reto, rr.fecha_registro, c.nombre, c.email, r.descripcion
+                FROM registros_retos rr
+                JOIN invitaciones i ON rr.id_invitacion = i.id
+                JOIN contactos c ON i.id_contacto = c.id
+                JOIN retos r ON rr.id_reto = r.id
+                WHERE i.id_evento = :id_evento AND rr.correcto = 1
+                ORDER BY rr.id_reto, rr.fecha_registro";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_evento', $id_evento, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
 }
 ?>
