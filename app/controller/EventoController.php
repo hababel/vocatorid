@@ -221,19 +221,37 @@ class EventoController extends Controller
 		}
 	}
 
-	public function kiosco($id_evento)
-	{
-		$evento = $this->eventoModel->obtenerPorId($id_evento);
-		if (!$evento) {
-			die('Este evento no existe.');
-		}
-		$datos = [
-			'titulo' => 'Kiosco - ' . $evento->nombre_evento,
-			'evento' => $evento
-		];
-		extract($datos);
-		require_once APP_BASE_PHYSICAL_PATH . '/app/views/eventos/kiosco.php';
-	}
+        public function kiosco($id_evento)
+        {
+                $evento = $this->eventoModel->obtenerPorId($id_evento);
+                if (!$evento) {
+                        die('Este evento no existe.');
+                }
+                $datos = [
+                        'titulo' => 'Kiosco - ' . $evento->nombre_evento,
+                        'evento' => $evento
+                ];
+                extract($datos);
+                require_once APP_BASE_PHYSICAL_PATH . '/app/views/eventos/kiosco.php';
+        }
+
+        /**
+         * Pantalla de Kiosko Virtual que muestra el código visual
+         * generado para el reto activo.
+         */
+        public function kioskoVirtual($id_evento)
+        {
+                $evento = $this->eventoModel->obtenerPorId($id_evento);
+                if (!$evento) {
+                        die('Este evento no existe.');
+                }
+                $datos = [
+                        'titulo' => 'Kiosko Virtual - ' . $evento->nombre_evento,
+                        'evento' => $evento
+                ];
+                extract($datos);
+                require_once APP_BASE_PHYSICAL_PATH . '/app/views/eventos/kiosko_virtual.php';
+        }
 
         public function generarTokenKiosco($id_evento)
         {

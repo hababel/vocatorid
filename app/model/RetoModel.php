@@ -32,6 +32,39 @@ class RetoModel extends Model
         }
     }
 
+    /**
+     * Actualiza el código y registra la fecha de actualización
+     * en la columna codigo_actual_timestamp si existe.
+     */
+    public function actualizarCodigoYFecha($id_reto, $codigo_actual)
+    {
+        $sql = "UPDATE retos SET codigo_actual = :codigo_actual, codigo_actual_timestamp = NOW() WHERE id = :id_reto";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':codigo_actual', $codigo_actual);
+            $stmt->bindParam(':id_reto', $id_reto, PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Actualiza únicamente la fecha de la última generación
+     * del código visual.
+     */
+    public function actualizarFechaCodigo($id_reto)
+    {
+        $sql = "UPDATE retos SET codigo_actual_timestamp = NOW() WHERE id = :id_reto";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_reto', $id_reto, PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
     public function obtenerActivoPorEvento($id_evento)
     {
         $sql = "SELECT * FROM retos WHERE id_evento = :id_evento AND hora_inicio <= NOW() AND hora_fin >= NOW() ORDER BY id DESC LIMIT 1";

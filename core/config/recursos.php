@@ -107,3 +107,22 @@ function obtenerRecursosClaveVisual()
 	];
 }
 
+/**
+ * Genera un código visual aleatorio en el formato
+ * [Fruta]-[Color]-[Animal] utilizando los recursos
+ * disponibles en el sistema.
+ *
+ * @param array $colores Lista de colores a utilizar.
+ * @return string Código generado.
+ */
+function generarCodigoFrutasColoresAnimales($colores)
+{
+        $recursos = obtenerRecursosClaveVisual();
+
+        $fruta = basename($recursos['frutas'][array_rand($recursos['frutas'])], '.jpg');
+        $animal = basename($recursos['animales'][array_rand($recursos['animales'])], '.jpg');
+        $color = $colores[array_rand($colores)];
+
+        return $fruta . '-' . $color . '-' . $animal;
+}
+
