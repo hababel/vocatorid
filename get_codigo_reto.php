@@ -24,6 +24,7 @@ $ahora = time();
 if (empty($reto->codigo_actual) || ($ahora - $timestamp) >= 40) {
     $datos = generarCodigoFrutasColoresAnimales(AsistenciaController::$colores);
     $codigo = $datos['codigo'];
+    unset($datos['codigo']);
     if (method_exists($retoModel, 'actualizarCodigoYFecha')) {
         $retoModel->actualizarCodigoYFecha($reto->id, $codigo);
     } else {
