@@ -1,6 +1,12 @@
 <?php
 $evento = $datos['evento'];
 $invitacion = $datos['invitacion'];
+require_once APP_BASE_PHYSICAL_PATH . '/core/config/recursos.php';
+require_once APP_BASE_PHYSICAL_PATH . '/app/controller/AsistenciaController.php';
+$recursos = obtenerRecursosClaveVisual();
+$listaFrutas = array_map(fn($f) => basename($f, '.jpg'), $recursos['frutas']);
+$listaAnimales = array_map(fn($a) => basename($a, '.jpg'), $recursos['animales']);
+$listaColores = array_keys(AsistenciaController::$colores);
 ?>
 <style>
     .reto-visual {
@@ -37,7 +43,7 @@ $invitacion = $datos['invitacion'];
     <div class="w-100" style="max-width: 600px; margin:auto;">
         <div class="text-center mb-4">
             <h1 class="h2 mb-3">Verificación de Asistencia</h1>
-            <p class="lead text-muted">Ingresa el código que ves en la pantalla del organizador.</p>
+            <p class="lead text-muted">Selecciona los elementos que ves en pantalla.</p>
         </div>
         <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i>
@@ -60,7 +66,9 @@ $invitacion = $datos['invitacion'];
                     <div id="contador" class="text-muted small">--:--</div>
                 </div>
                 <div class="mb-3">
-                    <input type="text" id="respuesta" class="form-control text-center" placeholder="Código" maxlength="30">
+                    <select id="select-fruta" class="form-select mb-2"></select>
+                    <select id="select-color" class="form-select mb-2"></select>
+                    <select id="select-animal" class="form-select"></select>
                 </div>
                 <div class="d-grid gap-2">
                     <button id="btn-verificar" class="btn btn-primary">Verificar</button>
@@ -72,6 +80,10 @@ $invitacion = $datos['invitacion'];
 </div>
 <script>
 const token = '<?php echo $invitacion->token_acceso; ?>';
+const opcionesFrutas = <?php echo json_encode($listaFrutas); ?>;
+const opcionesColores = <?php echo json_encode($listaColores); ?>;
+const opcionesAnimales = <?php echo json_encode($listaAnimales); ?>;
+const mapaColores = <?php echo json_encode(AsistenciaController::$colores); ?>;
 let idReto = 0;
 let proximoEn = 0;
 let countdownInterval = null;
@@ -81,6 +93,30 @@ const colorBtn = document.getElementById('color-boton');
 const progressBar = document.getElementById('progress-bar');
 const contadorElem = document.getElementById('contador');
 
+function generarOpciones(lista, correcta) {
+    const opciones = [correcta];
+    while (opciones.length < 5) {
+        const op = lista[Math.floor(Math.random() * lista.length)];
+        if (!opciones.includes(op)) opciones.push(op);
+    }
+    for (let i = opciones.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [opciones[i], opciones[j]] = [opciones[j], opciones[i]];
+    }
+    return opciones;
+}
+
+function llenarSelect(id, opciones) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '';
+    opciones.forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op;
+        opt.textContent = op;
+        sel.appendChild(opt);
+    });
+}
+
 async function cargarReto() {
     const res = await fetch('<?php echo URL_PATH; ?>asistencia/obtenerRetoActivo/' + token);
     const data = await res.json();
@@ -89,22 +125,38 @@ async function cargarReto() {
         frutaElem.src = data.fruta_img;
         animalElem.src = data.animal_img;
         colorBtn.style.backgroundColor = data.color_hex;
+        const frutaNombre = data.fruta_img.split('/').pop().replace('.jpg','');
+        const animalNombre = data.animal_img.split('/').pop().replace('.jpg','');
+        const colorNombre = Object.keys(mapaColores).find(n => mapaColores[n] === data.color_hex);
+        llenarSelect('select-fruta', generarOpciones(opcionesFrutas, frutaNombre));
+        llenarSelect('select-color', generarOpciones(opcionesColores, colorNombre));
+        llenarSelect('select-animal', generarOpciones(opcionesAnimales, animalNombre));
         iniciarBarra(data.tiempo_restante);
     } else if (data.proximo_en) {
         idReto = 0;
         proximoEn = data.proximo_en;
         iniciarContador();
+        llenarSelect('select-fruta', []);
+        llenarSelect('select-color', []);
+        llenarSelect('select-animal', []);
     } else {
         contadorElem.textContent = '';
+        llenarSelect('select-fruta', []);
+        llenarSelect('select-color', []);
+        llenarSelect('select-animal', []);
     }
 }
 
 async function verificar() {
-    const codigo = document.getElementById('respuesta').value;
+    const frutaSel = document.getElementById('select-fruta').value;
+    const colorSel = document.getElementById('select-color').value;
+    const animalSel = document.getElementById('select-animal').value;
     const formData = new FormData();
     formData.append('token', token);
     formData.append('id_reto', idReto);
-    formData.append('codigo', codigo);
+    formData.append('fruta', frutaSel);
+    formData.append('color', colorSel);
+    formData.append('animal', animalSel);
     const res = await fetch('<?php echo URL_PATH; ?>asistencia/validarReto', { method:'POST', body: formData });
     const data = await res.json();
     if (data.exito) {
@@ -114,7 +166,6 @@ async function verificar() {
         const msg = data.mensaje ? data.mensaje : 'Código incorrecto';
         document.getElementById('mensaje').innerHTML = '<span class="text-danger">' + msg + '</span>';
     }
-    document.getElementById('respuesta').value = '';
 }
 
 function iniciarBarra(duracion){

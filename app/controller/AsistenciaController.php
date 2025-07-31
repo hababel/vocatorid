@@ -21,7 +21,6 @@ class AsistenciaController extends Controller
                 'Azul'     => '#007bff',
                 'Amarillo' => '#ffc107',
                 'Negro'    => '#000000',
-                'Blanco'   => '#FFFFFF',
                 'Naranja'  => '#fd7e14',
                 'Morado'   => '#6f42c1'
         ];
@@ -201,7 +200,9 @@ class AsistenciaController extends Controller
 
                 $token_acceso = $_POST['token'] ?? '';
                 $id_reto = $_POST['id_reto'] ?? 0;
-                $codigo = strtoupper(trim($_POST['codigo'] ?? ''));
+                $fruta = trim($_POST['fruta'] ?? '');
+                $color = trim($_POST['color'] ?? '');
+                $animal = trim($_POST['animal'] ?? '');
 
                 $invitacion = $this->invitacionModel->obtenerPorToken($token_acceso);
                 if (!$invitacion) {
@@ -220,8 +221,16 @@ class AsistenciaController extends Controller
                         return;
                 }
 
-                $correcto = (strtoupper($reto->codigo_actual) === $codigo) ? 1 : 0;
-                $this->registroRetoModel->crear($reto->id, $invitacion->id, $codigo, $_SERVER['REMOTE_ADDR'] ?? '', $correcto);
+                $partes = explode('-', $reto->codigo_actual);
+                if (count($partes) === 3) {
+                        list($frutaCor, $colorCor, $animalCor) = $partes;
+                } else {
+                        $frutaCor = $colorCor = $animalCor = '';
+                }
+
+                $codigoIngresado = $fruta . '-' . $color . '-' . $animal;
+                $correcto = (strcasecmp($frutaCor, $fruta) === 0 && strcasecmp($colorCor, $color) === 0 && strcasecmp($animalCor, $animal) === 0) ? 1 : 0;
+                $this->registroRetoModel->crear($reto->id, $invitacion->id, $codigoIngresado, $_SERVER['REMOTE_ADDR'] ?? '', $correcto);
 
                 if ($correcto == 1 && !$this->registroAsistenciaModel->yaRegistrado($invitacion->id)) {
                         $this->registroAsistenciaModel->crear($invitacion->id, 'Reto ' . $reto->id);

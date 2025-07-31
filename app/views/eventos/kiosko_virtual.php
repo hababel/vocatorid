@@ -58,15 +58,13 @@ $evento = $datos['evento'];
 		padding: 2rem;
 	}
 
-	.card-kiosco {
-		background-color: rgba(33, 37, 41, 0.75);
-		border-radius: 1.5rem;
-		padding: 2.5rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-		backdrop-filter: blur(15px);
-		-webkit-backdrop-filter: blur(15px);
-	}
+        #card-kiosco {
+                background: #fff !important;
+                border-radius: 10px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                padding: 20px;
+                text-align: center;
+        }
 
 
         .reto-visual {
@@ -159,8 +157,8 @@ $evento = $datos['evento'];
 
 	<div class="background-gradient"></div>
 
-	<div class="kiosco-container">
-		<div class="card-kiosco">
+        <div class="kiosco-container">
+                <div id="card-kiosco">
 			<h1 class="event-title h2"><?php echo htmlspecialchars($evento->nombre_evento); ?></h1>
 
                         <p class="text-muted mt-4">Código vigente:</p>
