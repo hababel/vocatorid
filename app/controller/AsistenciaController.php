@@ -158,6 +158,7 @@ class AsistenciaController extends Controller
                         if (empty($reto->codigo_actual) || ($ahora - $timestamp) >= 40) {
                                 $datos = generarCodigoFrutasColoresAnimales(self::$colores);
                                 $codigo = $datos['codigo'];
+                                unset($datos['codigo']);
                                 if (method_exists($this->retoModel, 'actualizarCodigoYFecha')) {
                                         $this->retoModel->actualizarCodigoYFecha($reto->id, $codigo);
                                 } else {
@@ -172,10 +173,28 @@ class AsistenciaController extends Controller
                         $tiempo_restante = 40 - ($ahora - $timestamp);
                         if ($tiempo_restante < 0) $tiempo_restante = 0;
 
+                        $recursos = obtenerRecursosClaveVisual();
+                        $listaFrutas = array_map(fn($f) => basename($f, '.jpg'), $recursos['frutas']);
+                        $listaAnimales = array_map(fn($a) => basename($a, '.jpg'), $recursos['animales']);
+                        $listaColores = array_values(self::$colores);
+
+                        $opciones_frutas = array_map(
+                                fn($n) => URL_PATH . 'core/img/clave_visual/frutas/' . $n . '.jpg',
+                                generarOpcionesLista($listaFrutas, $datos['fruta'])
+                        );
+                        $opciones_animales = array_map(
+                                fn($n) => URL_PATH . 'core/img/clave_visual/animales/' . $n . '.jpg',
+                                generarOpcionesLista($listaAnimales, $datos['animal'])
+                        );
+                        $opciones_colores = generarOpcionesLista($listaColores, $datos['color_hex']);
+
                         echo json_encode(array_merge([
                                 'exito' => true,
                                 'id_reto' => $reto->id,
-                                'tiempo_restante' => $tiempo_restante
+                                'tiempo_restante' => $tiempo_restante,
+                                'opciones_frutas' => $opciones_frutas,
+                                'opciones_animales' => $opciones_animales,
+                                'opciones_colores' => $opciones_colores
                         ], $datos));
                         return;
                 }

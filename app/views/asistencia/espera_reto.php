@@ -1,12 +1,7 @@
 <?php
 $evento = $datos['evento'];
 $invitacion = $datos['invitacion'];
-require_once APP_BASE_PHYSICAL_PATH . '/core/config/recursos.php';
 require_once APP_BASE_PHYSICAL_PATH . '/app/controller/AsistenciaController.php';
-$recursos = obtenerRecursosClaveVisual();
-$listaFrutas = array_map(fn($f) => basename($f, '.jpg'), $recursos['frutas']);
-$listaAnimales = array_map(fn($a) => basename($a, '.jpg'), $recursos['animales']);
-$listaColores = array_keys(AsistenciaController::$colores);
 ?>
 <style>
     #card-kiosco {
@@ -23,13 +18,13 @@ $listaColores = array_keys(AsistenciaController::$colores);
         gap: 20px;
     }
     .reto-img {
-        width: 60px;
-        height: 60px;
+        width: 100px;
+        height: 100px;
         object-fit: contain;
     }
     .color-btn {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         border: none;
     }
     .opciones-list {
@@ -40,26 +35,24 @@ $listaColores = array_keys(AsistenciaController::$colores);
         margin-bottom: 1rem;
     }
     .opcion-img {
-        width: 60px;
-        height: 60px;
+        width: 80px;
+        height: 80px;
         object-fit: contain;
         cursor: pointer;
         border: 3px solid transparent;
         border-radius: 8px;
     }
-    .opcion-img.selected {
-        border-color: #0d6efd;
+    .opcion-seleccionada {
+        border: 3px solid #2ecc71;
+        border-radius: 5px;
     }
     .color-option {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         border: none;
         cursor: pointer;
         border: 3px solid transparent;
         border-radius: 4px;
-    }
-    .color-option.selected {
-        border-color: #0d6efd;
     }
     .progress-container {
         display: flex;
@@ -114,11 +107,7 @@ $listaColores = array_keys(AsistenciaController::$colores);
 </div>
 <script>
 const token = '<?php echo $invitacion->token_acceso; ?>';
-const opcionesFrutas = <?php echo json_encode($listaFrutas); ?>;
-const opcionesColores = <?php echo json_encode($listaColores); ?>;
-const opcionesAnimales = <?php echo json_encode($listaAnimales); ?>;
 const mapaColores = <?php echo json_encode(AsistenciaController::$colores); ?>;
-const baseUrl = '<?php echo URL_PATH; ?>';
 let idReto = 0;
 let proximoEn = 0;
 let countdownInterval = null;
@@ -127,19 +116,6 @@ const animalElem = document.getElementById('animal');
 const colorBtn = document.getElementById('color-boton');
 const progressBar = document.getElementById('progress-bar');
 const contadorElem = document.getElementById('contador');
-
-function generarOpciones(lista, correcta) {
-    const opciones = [correcta];
-    while (opciones.length < 5) {
-        const op = lista[Math.floor(Math.random() * lista.length)];
-        if (!opciones.includes(op)) opciones.push(op);
-    }
-    for (let i = opciones.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [opciones[i], opciones[j]] = [opciones[j], opciones[i]];
-    }
-    return opciones;
-}
 
 
 let frutaSeleccionada = '';
@@ -150,14 +126,15 @@ function renderFrutas(opciones) {
     const cont = document.getElementById('opciones-fruta');
     cont.innerHTML = '';
     frutaSeleccionada = '';
-    opciones.forEach(nombre => {
+    opciones.forEach(url => {
+        const nombre = url.split('/').pop().replace(/\.[^.]+$/, '');
         const img = document.createElement('img');
-        img.src = baseUrl + 'core/img/clave_visual/frutas/' + nombre + '.jpg';
+        img.src = url;
         img.className = 'opcion-img';
         img.addEventListener('click', () => {
             frutaSeleccionada = nombre;
-            cont.querySelectorAll('img').forEach(i => i.classList.remove('selected'));
-            img.classList.add('selected');
+            cont.querySelectorAll('img').forEach(i => i.classList.remove('opcion-seleccionada'));
+            img.classList.add('opcion-seleccionada');
         });
         cont.appendChild(img);
     });
@@ -167,14 +144,15 @@ function renderAnimales(opciones) {
     const cont = document.getElementById('opciones-animal');
     cont.innerHTML = '';
     animalSeleccionado = '';
-    opciones.forEach(nombre => {
+    opciones.forEach(url => {
+        const nombre = url.split('/').pop().replace(/\.[^.]+$/, '');
         const img = document.createElement('img');
-        img.src = baseUrl + 'core/img/clave_visual/animales/' + nombre + '.jpg';
+        img.src = url;
         img.className = 'opcion-img';
         img.addEventListener('click', () => {
             animalSeleccionado = nombre;
-            cont.querySelectorAll('img').forEach(i => i.classList.remove('selected'));
-            img.classList.add('selected');
+            cont.querySelectorAll('img').forEach(i => i.classList.remove('opcion-seleccionada'));
+            img.classList.add('opcion-seleccionada');
         });
         cont.appendChild(img);
     });
@@ -184,15 +162,16 @@ function renderColores(opciones) {
     const cont = document.getElementById('opciones-color');
     cont.innerHTML = '';
     colorSeleccionado = '';
-    opciones.forEach(nombre => {
+    opciones.forEach(hex => {
+        const nombre = Object.keys(mapaColores).find(k => mapaColores[k] === hex);
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'color-option';
-        btn.style.backgroundColor = mapaColores[nombre];
+        btn.style.backgroundColor = hex;
         btn.addEventListener('click', () => {
             colorSeleccionado = nombre;
-            cont.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
+            cont.querySelectorAll('button').forEach(b => b.classList.remove('opcion-seleccionada'));
+            btn.classList.add('opcion-seleccionada');
         });
         cont.appendChild(btn);
     });
@@ -206,12 +185,9 @@ async function cargarReto() {
         frutaElem.src = data.fruta_img;
         animalElem.src = data.animal_img;
         colorBtn.style.backgroundColor = data.color_hex;
-        const frutaNombre = data.fruta_img.split('/').pop().replace('.jpg','');
-        const animalNombre = data.animal_img.split('/').pop().replace('.jpg','');
-        const colorNombre = Object.keys(mapaColores).find(n => mapaColores[n] === data.color_hex);
-        renderFrutas(generarOpciones(opcionesFrutas, frutaNombre));
-        renderColores(generarOpciones(opcionesColores, colorNombre));
-        renderAnimales(generarOpciones(opcionesAnimales, animalNombre));
+        renderFrutas(data.opciones_frutas);
+        renderColores(data.opciones_colores);
+        renderAnimales(data.opciones_animales);
         iniciarBarra(data.tiempo_restante);
     } else if (data.proximo_en) {
         idReto = 0;
@@ -232,6 +208,10 @@ async function verificar() {
     const frutaSel = frutaSeleccionada;
     const colorSel = colorSeleccionado;
     const animalSel = animalSeleccionado;
+    if(!frutaSel || !colorSel || !animalSel){
+        document.getElementById('mensaje').innerHTML = '<span class="text-warning">⚠️ Debes seleccionar los tres elementos antes de continuar</span>';
+        return;
+    }
     const formData = new FormData();
     formData.append('token', token);
     formData.append('id_reto', idReto);

@@ -135,7 +135,10 @@ function generarCodigoFrutasColoresAnimales($colores)
                 'codigo' => $codigo,
                 'fruta_img'  => URL_PATH . 'core/img/clave_visual/frutas/' . $frutaArchivo,
                 'color_hex'  => $colorHex,
-                'animal_img' => URL_PATH . 'core/img/clave_visual/animales/' . $animalArchivo
+                'animal_img' => URL_PATH . 'core/img/clave_visual/animales/' . $animalArchivo,
+                'fruta' => $fruta,
+                'animal' => $animal,
+                'color_nombre' => $colorNombre
         ];
 }
 
@@ -155,7 +158,24 @@ function datosDesdeCodigoVisual($codigo, $colores)
         return [
                 'fruta_img'  => URL_PATH . 'core/img/clave_visual/frutas/' . $fruta . '.jpg',
                 'color_hex'  => $colores[$colorNombre] ?? '#000000',
-                'animal_img' => URL_PATH . 'core/img/clave_visual/animales/' . $animal . '.jpg'
+                'animal_img' => URL_PATH . 'core/img/clave_visual/animales/' . $animal . '.jpg',
+                'fruta' => $fruta,
+                'animal' => $animal,
+                'color_nombre' => $colorNombre
         ];
+}
+
+/**
+ * Genera un listado de opciones que incluye la respuesta correcta
+ * y un número de distractores aleatorios.
+ */
+function generarOpcionesLista(array $lista, $correcta, $cantidad = 5)
+{
+        $opciones = [$correcta];
+        $resto = array_values(array_diff($lista, [$correcta]));
+        shuffle($resto);
+        $opciones = array_merge($opciones, array_slice($resto, 0, max(0, $cantidad - 1)));
+        shuffle($opciones);
+        return $opciones;
 }
 
