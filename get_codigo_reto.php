@@ -6,9 +6,7 @@ require_once APP_BASE_PHYSICAL_PATH . '/app/model/RetoModel.php';
 require_once APP_BASE_PHYSICAL_PATH . '/app/controller/AsistenciaController.php';
 require_once APP_BASE_PHYSICAL_PATH . '/core/config/recursos.php';
 
-// Cabeceras para evitar problemas CORS y de codificación
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json; charset=UTF-8');
+header('Content-Type: application/json');
 
 $id_evento = isset($_GET['id_evento']) ? (int)$_GET['id_evento'] : 0;
 
