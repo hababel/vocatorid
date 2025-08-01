@@ -85,12 +85,14 @@ $invitacion = $datos['invitacion'];
 						<h6 class="mb-3">Detalles de tu Registro:</h6>
 						<ul class="list-unstyled">
 							<li><strong>Fecha y Hora:</strong> <?php echo date('d/m/Y h:i:s A', strtotime($invitacion->fecha_checkin)); ?></li>
-							<li class="mt-2"><strong>Clave Visual utilizada:</strong>
-								<div class="d-flex align-items-center mt-1 clave-visual-summary">
-									<img src="<?php echo URL_PATH; ?>core/img/clave_visual/<?php echo $invitacion->clave_visual_tipo . '/' . $invitacion->clave_visual_valor; ?>" alt="Imagen Clave">
-									<div class="color-box ms-2" style="background-color: <?php echo strtolower($invitacion->clave_texto); ?>"></div>
-								</div>
-							</li>
+                                                        <li class="mt-2"><strong>Clave Visual utilizada:</strong>
+                                                                <div class="d-flex align-items-center mt-1 clave-visual-summary">
+<?php list($frutaImg,$animalImg) = explode('|', $invitacion->clave_visual_valor); ?>
+                                                                        <img src="<?php echo URL_PATH; ?>core/img/clave_visual/frutas/<?php echo $frutaImg; ?>" alt="Fruta">
+                                                                        <img src="<?php echo URL_PATH; ?>core/img/clave_visual/animales/<?php echo $animalImg; ?>" alt="Animal" class="ms-2">
+                                                                        <div class="color-box ms-2" style="background-color: <?php echo strtolower($invitacion->clave_texto); ?>"></div>
+                                                                </div>
+                                                        </li>
 							<li class="mt-2"><strong>Token de Acceso:</strong> <small><code title="<?php echo $invitacion->token_acceso; ?>"><?php echo substr($invitacion->token_acceso, 0, 8) . '...' . substr($invitacion->token_acceso, -8); ?></code></small></li>
 						</ul>
 					</div>

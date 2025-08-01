@@ -107,14 +107,16 @@ class AsistenciaController extends Controller
 			}
 		}
 
-		$recursos = obtenerRecursosClaveVisual();
-		$categoria_aleatoria = array_rand($recursos);
-		$imagen_aleatoria = $recursos[$categoria_aleatoria][array_rand($recursos[$categoria_aleatoria])];
+                $recursos = obtenerRecursosClaveVisual();
+                $fruta = $recursos['frutas'][array_rand($recursos['frutas'])];
+                $animal = $recursos['animales'][array_rand($recursos['animales'])];
 
-		$colores = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple'];
-		$color_aleatorio = $colores[array_rand($colores)];
+                $colores = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple'];
+                $color_aleatorio = $colores[array_rand($colores)];
 
-		if (!$this->invitacionModel->guardarClaveVisual($invitacion->id, $categoria_aleatoria, $imagen_aleatoria, $color_aleatorio)) {
+                $valor_img = $fruta . '|' . $animal;
+
+                if (!$this->invitacionModel->guardarClaveVisual($invitacion->id, '3fav', $valor_img, $color_aleatorio)) {
 			echo json_encode(['exito' => false, 'mensaje' => 'Error al preparar el desafío de verificación. Inténtalo de nuevo.']);
 			return;
 		}
@@ -122,9 +124,10 @@ class AsistenciaController extends Controller
 		$contacto = $this->contactoModel->obtenerPorId($invitacion->id_contacto);
 
 		// --- INICIO DE CAMBIOS ---
-		// Construcción del mensaje SMS
-		$nombre_imagen = substr($imagen_aleatoria, 0, -4); // Elimina la extensión .jpg
-		$mensaje_sms = "Clave VocatorID: Imagen de un {$nombre_imagen} y color {$color_aleatorio}.";
+                // Construcción del mensaje SMS
+                $nombre_fruta = substr($fruta, 0, -4);
+                $nombre_animal = substr($animal, 0, -4);
+                $mensaje_sms = "Clave VocatorID: {$nombre_fruta}, {$color_aleatorio}, {$nombre_animal}.";
 
 		// Envío del SMS en lugar del correo electrónico
 		if (!$this->mailService->enviarSMS($contacto->telefono, $mensaje_sms)) {
@@ -147,20 +150,39 @@ class AsistenciaController extends Controller
 			die('Enlace no válido o desafío no iniciado.');
 		}
 
-		$recursos = obtenerRecursosClaveVisual();
-		$opciones_imagenes = $recursos[$invitacion->clave_visual_tipo];
-		shuffle($opciones_imagenes);
+                $recursos = obtenerRecursosClaveVisual();
 
-		$opciones_colores = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple'];
-		shuffle($opciones_colores);
+                list($fruta_correcta, $animal_correcto) = explode('|', $invitacion->clave_visual_valor);
 
-		$datos = [
-			'titulo' => 'Desafío de Verificación',
-			'invitacion' => $invitacion,
-			'opciones_imagenes' => $opciones_imagenes,
-			'opciones_colores' => $opciones_colores
-		];
-		$this->vista('asistencia/verificacion_clave_visual', $datos);
+                $opciones_frutas = $recursos['frutas'];
+                $opciones_frutas = array_diff($opciones_frutas, [$fruta_correcta]);
+                shuffle($opciones_frutas);
+                $opciones_frutas = array_slice($opciones_frutas, 0, 4);
+                $opciones_frutas[] = $fruta_correcta;
+                shuffle($opciones_frutas);
+
+                $opciones_animales = $recursos['animales'];
+                $opciones_animales = array_diff($opciones_animales, [$animal_correcto]);
+                shuffle($opciones_animales);
+                $opciones_animales = array_slice($opciones_animales, 0, 4);
+                $opciones_animales[] = $animal_correcto;
+                shuffle($opciones_animales);
+
+                $opciones_colores = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple'];
+                $opciones_colores = array_diff($opciones_colores, [$invitacion->clave_texto]);
+                shuffle($opciones_colores);
+                $opciones_colores = array_slice($opciones_colores, 0, 4);
+                $opciones_colores[] = $invitacion->clave_texto;
+                shuffle($opciones_colores);
+
+                $datos = [
+                        'titulo' => 'Desafío de Verificación',
+                        'invitacion' => $invitacion,
+                        'opciones_frutas' => $opciones_frutas,
+                        'opciones_animales' => $opciones_animales,
+                        'opciones_colores' => $opciones_colores
+                ];
+                $this->vista('asistencia/verificacion_clave_visual', $datos);
 	}
 
 	public function procesarClaveVisual()
@@ -171,12 +193,17 @@ class AsistenciaController extends Controller
 		}
 
 		$token_acceso = $_POST['token_acceso'];
-		$imagen_seleccionada = $_POST['clave_imagen'];
-		$color_seleccionado = $_POST['clave_color'];
+                $fruta_sel = $_POST['clave_fruta'];
+                $animal_sel = $_POST['clave_animal'];
+                $color_seleccionado = $_POST['clave_color'];
 
 		$invitacion = $this->invitacionModel->obtenerPorToken($token_acceso);
 
-		if ($invitacion && $invitacion->clave_visual_valor === $imagen_seleccionada && $invitacion->clave_texto === $color_seleccionado) {
+                if ($invitacion) {
+                        list($fruta_correcta, $animal_correcto) = explode('|', $invitacion->clave_visual_valor);
+                }
+
+                if ($invitacion && $fruta_correcta === $fruta_sel && $animal_correcto === $animal_sel && $invitacion->clave_texto === $color_seleccionado) {
 			// Si la clave es correcta
 			if ($this->registroAsistenciaModel->crear($invitacion->id, 'Verificado por 3-FAV')) {
 				$this->invitacionModel->marcarAsistenciaVerificada($invitacion->id);
