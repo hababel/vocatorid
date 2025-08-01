@@ -5,14 +5,17 @@ require_once APP_BASE_PHYSICAL_PATH . '/app/controller/AsistenciaController.php'
 ?>
 <style>
     .titulo-seccion{margin-top:1rem;font-weight:bold;}
-    .opciones{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1rem;}
+    .opciones{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1rem;justify-content:center;}
     .opciones img,.opciones button{width:80px;height:80px;object-fit:contain;border:2px solid transparent;border-radius:5px;cursor:pointer;}
+    @media (max-width:576px){
+        .opciones img,.opciones button{width:70px;height:70px;}
+    }
     .seleccionada{border-color:#28a745!important;}
     .mensaje{background:#d4edda;padding:.75rem;border-radius:5px;margin-bottom:1rem;font-size:.9rem;}
 </style>
 <div class="container container-main d-flex align-items-center">
     <div class="w-100" style="max-width:600px;margin:auto;">
-        <h2>Verificación de Asistencia</h2>
+        <h2 class="text-center">Paso 2: Verificación de Asistencia</h2>
         <p>Selecciona los elementos que viste en la pantalla compartida del evento.</p>
         <div class="mensaje">
             ✅ Paso 1 Completado: Sabemos que eres tú porque accediste con tu enlace único.
@@ -35,12 +38,19 @@ let frutaSel = '';
 let animalSel = '';
 let colorSel = '';
 
+function normalizarUrl(url){
+    if(url.startsWith('http://') || url.startsWith('https://')){
+        return window.location.protocol+'//'+url.split('://')[1];
+    }
+    return url;
+}
+
 function renderOpciones(cont, opciones, tipo){
     cont.innerHTML='';
     opciones.forEach(opt=>{
         const nombre = tipo==='color' ? Object.keys(mapaColores).find(k=>mapaColores[k]===opt) : opt.split('/').pop().replace(/\.[^.]+$/, '');
         const el = tipo==='color'?document.createElement('button'):document.createElement('img');
-        if(tipo==='color') el.style.backgroundColor=opt; else el.src=opt;
+        if(tipo==='color') el.style.backgroundColor=opt; else el.src=normalizarUrl(opt);
         el.addEventListener('click',()=>{
             if(tipo==='fruta'){frutaSel=nombre; cont.querySelectorAll('img').forEach(i=>i.classList.remove('seleccionada'));}
             if(tipo==='animal'){animalSel=nombre; cont.querySelectorAll('img').forEach(i=>i.classList.remove('seleccionada'));}
