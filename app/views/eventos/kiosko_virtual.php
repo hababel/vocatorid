@@ -239,10 +239,7 @@ $evento = $datos['evento'];
 
                         async function actualizarToken() {
                                 try {
-                                const url = 'https://generandocodigo.com/vocatorid/get_codigo_reto.php?id_evento=<?php echo $evento->id; ?>&ts=' + Date.now();
-                                const response = await fetch(url, {
-                                        headers: { 'Cache-Control': 'no-cache' }
-                                });
+                                        const response = await fetch('<?php echo URL_PATH; ?>get_codigo_reto.php?id_evento=<?php echo $evento->id; ?>');
                                         if (!response.ok) throw new Error('Error de red');
 
                                         const data = await response.json();
