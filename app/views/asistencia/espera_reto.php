@@ -51,8 +51,8 @@ body {
 }
 
 .opciones img, .opciones button {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   object-fit: contain;
   cursor: pointer;
   border: 2px solid transparent;
@@ -117,18 +117,13 @@ body {
   </div>
 </div>
 <script>
+const URL_PATH = '<?php echo URL_PATH; ?>';
 const token = '<?php echo $invitacion->token_acceso; ?>';
 const mapaColores = <?php echo json_encode(AsistenciaController::$colores); ?>;
 let idReto = 0;
 let frutaSel = '';
 let animalSel = '';
 let colorSel = '';
-
-function absoluteUrl(url) {
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  if (url.startsWith('/')) return window.location.origin + url;
-  return window.location.origin + '/' + url;
-}
 
 function seleccionar(elemento, grupo) {
   document.querySelectorAll(`#${grupo}s .seleccionado`).forEach(el => el.classList.remove('seleccionado'));
@@ -145,7 +140,7 @@ function renderOpciones(cont, opciones, tipo) {
     if (tipo === 'color') {
       el.style.backgroundColor = opt;
     } else {
-      el.src = absoluteUrl(opt);
+      el.src = URL_PATH + opt;
       el.alt = nombre;
     }
     el.addEventListener('click', () => {
