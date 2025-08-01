@@ -140,7 +140,7 @@ function renderOpciones(cont, opciones, tipo) {
     if (tipo === 'color') {
       el.style.backgroundColor = opt;
     } else {
-      el.src = URL_PATH + opt;
+      el.src = opt;
       el.alt = nombre;
     }
     el.addEventListener('click', () => {
