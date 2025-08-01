@@ -36,30 +36,15 @@ if (empty($reto->codigo_actual) || ($ahora - $timestamp) >= 40) {
     $datos = datosDesdeCodigoVisual($reto->codigo_actual, AsistenciaController::$colores);
 }
 
-$recursos = obtenerRecursosClaveVisual();
-$listaFrutas = array_map(fn($f) => basename($f, '.jpg'), $recursos['frutas']);
-$listaAnimales = array_map(fn($a) => basename($a, '.jpg'), $recursos['animales']);
-$listaColores = array_values(AsistenciaController::$colores);
-
-$opciones_frutas = array_map(
-    fn($n) => URL_PATH . 'core/img/clave_visual/frutas/' . $n . '.jpg',
-    generarOpcionesLista($listaFrutas, $datos['fruta'])
-);
-$opciones_animales = array_map(
-    fn($n) => URL_PATH . 'core/img/clave_visual/animales/' . $n . '.jpg',
-    generarOpcionesLista($listaAnimales, $datos['animal'])
-);
-$opciones_colores = generarOpcionesLista($listaColores, $datos['color_hex']);
-
 $tiempo_restante = 40 - ($ahora - $timestamp);
 if ($tiempo_restante < 0) {
     $tiempo_restante = 0;
 }
 
-echo json_encode(array_merge($datos, [
-    'tiempo_restante' => $tiempo_restante,
+echo json_encode([
     'estado' => 'activo',
-    'opciones_frutas' => $opciones_frutas,
-    'opciones_animales' => $opciones_animales,
-    'opciones_colores' => $opciones_colores
-]));
+    'fruta_img' => $datos['fruta_img'],
+    'animal_img' => $datos['animal_img'],
+    'color_hex' => $datos['color_hex'],
+    'tiempo_restante' => $tiempo_restante
+]);

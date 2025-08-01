@@ -188,14 +188,15 @@ class AsistenciaController extends Controller
                         );
                         $opciones_colores = generarOpcionesLista($listaColores, $datos['color_hex']);
 
-                        echo json_encode(array_merge([
+                        echo json_encode([
                                 'exito' => true,
                                 'id_reto' => $reto->id,
+                                'estado' => 'activo',
                                 'tiempo_restante' => $tiempo_restante,
                                 'opciones_frutas' => $opciones_frutas,
                                 'opciones_animales' => $opciones_animales,
                                 'opciones_colores' => $opciones_colores
-                        ], $datos));
+                        ]);
                         return;
                 }
 
