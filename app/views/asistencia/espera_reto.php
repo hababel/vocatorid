@@ -17,14 +17,18 @@ require_once APP_BASE_PHYSICAL_PATH . '/app/controller/AsistenciaController.php'
         align-items: center;
         gap: 20px;
     }
+    .reto-visual img,
+    .reto-visual button {
+        border: 2px solid black;
+    }
     .reto-img {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
         object-fit: contain;
     }
     .color-btn {
         width: 50px;
-        height: 50px;
+        height: 80px;
         border: none;
     }
     .opciones-list {
@@ -39,20 +43,19 @@ require_once APP_BASE_PHYSICAL_PATH . '/app/controller/AsistenciaController.php'
         height: 80px;
         object-fit: contain;
         cursor: pointer;
-        border: 3px solid transparent;
-        border-radius: 8px;
+        border: 2px solid transparent;
+        border-radius: 5px;
     }
     .opcion-seleccionada {
-        border: 3px solid #2ecc71;
-        border-radius: 5px;
+        border: 2px solid #2ecc71 !important;
     }
     .color-option {
         width: 50px;
-        height: 50px;
+        height: 80px;
         border: none;
         cursor: pointer;
-        border: 3px solid transparent;
-        border-radius: 4px;
+        border: 2px solid transparent;
+        border-radius: 5px;
     }
     .progress-container {
         display: flex;
@@ -218,7 +221,7 @@ async function verificar() {
     formData.append('fruta', frutaSel);
     formData.append('color', colorSel);
     formData.append('animal', animalSel);
-    const res = await fetch('<?php echo URL_PATH; ?>asistencia/validarReto', { method:'POST', body: formData });
+    const res = await fetch('<?php echo URL_PATH; ?>validar_reto.php', { method:'POST', body: formData });
     const data = await res.json();
     if (data.exito) {
         document.getElementById('mensaje').innerHTML = '<span class="text-success">✅ Asistencia registrada</span>';
