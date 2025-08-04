@@ -2,6 +2,41 @@
 $evento = $datos['evento'];
 $invitacion = $datos['invitacion'];
 require_once APP_BASE_PHYSICAL_PATH . '/app/controller/AsistenciaController.php';
+require_once APP_BASE_PHYSICAL_PATH . '/core/config/recursos.php';
+
+// Obtener y barajar recursos de la clave visual
+$recursos = obtenerRecursosClaveVisual();
+
+$frutas = array_map(function ($archivo) {
+    return [
+        'nombre' => pathinfo($archivo, PATHINFO_FILENAME),
+        'url' => URL_PATH . 'core/img/clave_visual/frutas/' . $archivo
+    ];
+}, $recursos['frutas']);
+
+$animales = array_map(function ($archivo) {
+    return [
+        'nombre' => pathinfo($archivo, PATHINFO_FILENAME),
+        'url' => URL_PATH . 'core/img/clave_visual/animales/' . $archivo
+    ];
+}, $recursos['animales']);
+
+$colores = [];
+foreach (AsistenciaController::$colores as $nombre => $hex) {
+    $colores[] = ['nombre' => $nombre, 'hex' => $hex];
+}
+
+shuffle($frutas);
+shuffle($animales);
+shuffle($colores);
+
+// Obtener ID del reto activo
+ob_start();
+$ctrl = new AsistenciaController();
+$ctrl->obtenerRetoActivo($invitacion->token_acceso);
+$retoData = json_decode(ob_get_clean(), true);
+$idReto = $retoData['id_reto'] ?? 0;
+header('Content-Type: text/html; charset=utf-8');
 ?>
 <style>
 body {
@@ -47,28 +82,31 @@ body {
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 10px;
+}
+
+.opciones label {
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
 }
 
 .opciones img, .opciones button {
-  width: 70px;
-  height: 70px;
-  object-fit: contain;
-  cursor: pointer;
+  width: 80px;
+  height: 80px;
   border: 2px solid transparent;
   border-radius: 5px;
-  background: #fff;
 }
 
-.opciones button {
-  border: 2px solid #000;
+.opciones input[type="radio"] {
+  display: none;
 }
 
-.seleccionado {
-  border: 3px solid #2ecc71 !important;
+.opciones input[type="radio"]:checked + img,
+.opciones input[type="radio"]:checked + button {
+  border: 3px solid #2ecc71;
 }
 
-#confirmar {
+.boton-verificar {
   width: 90%;
   max-width: 250px;
   background: #007bff;
@@ -80,7 +118,7 @@ body {
   cursor: pointer;
 }
 
-#confirmar:hover {
+.boton-verificar:hover {
   background: #0056b3;
 }
 </style>
@@ -97,96 +135,48 @@ body {
       ✅ Paso 1 Completado: Sabemos que eres tú porque accediste con tu enlace único.
     </div>
 
-    <div class="wizard-section">
-      <h3>1️⃣ Selecciona la fruta que viste:</h3>
-      <div class="opciones" id="frutas"></div>
-    </div>
+    <form method="POST" action="<?php echo URL_PATH; ?>validar_reto.php">
+      <input type="hidden" name="token" value="<?php echo $invitacion->token_acceso; ?>">
+      <input type="hidden" name="id_reto" value="<?php echo $idReto; ?>">
 
-    <div class="wizard-section">
-      <h3>2️⃣ Selecciona el color que viste:</h3>
-      <div class="opciones" id="colores"></div>
-    </div>
+      <div class="wizard-section">
+        <h3>1️⃣ Selecciona la fruta que viste:</h3>
+        <div class="opciones">
+          <?php foreach($frutas as $fruta): ?>
+            <label>
+              <input type="radio" name="fruta" value="<?php echo $fruta['nombre']; ?>" required>
+              <img src="<?php echo $fruta['url']; ?>" alt="<?php echo $fruta['nombre']; ?>">
+            </label>
+          <?php endforeach; ?>
+        </div>
+      </div>
 
-    <div class="wizard-section">
-      <h3>3️⃣ Selecciona el animal que viste:</h3>
-      <div class="opciones" id="animales"></div>
-    </div>
+      <div class="wizard-section">
+        <h3>2️⃣ Selecciona el color que viste:</h3>
+        <div class="opciones">
+          <?php foreach($colores as $color): ?>
+            <label>
+              <input type="radio" name="color" value="<?php echo $color['nombre']; ?>" required>
+              <button style="background:<?php echo $color['hex']; ?>;"></button>
+            </label>
+          <?php endforeach; ?>
+        </div>
+      </div>
 
-    <button id="confirmar">✅ Confirmar Asistencia</button>
+      <div class="wizard-section">
+        <h3>3️⃣ Selecciona el animal que viste:</h3>
+        <div class="opciones">
+          <?php foreach($animales as $animal): ?>
+            <label>
+              <input type="radio" name="animal" value="<?php echo $animal['nombre']; ?>" required>
+              <img src="<?php echo $animal['url']; ?>" alt="<?php echo $animal['nombre']; ?>">
+            </label>
+          <?php endforeach; ?>
+        </div>
+      </div>
+
+      <button type="submit" class="boton-verificar">✅ Confirmar Asistencia</button>
+    </form>
     <div id="mensaje" class="mt-3"></div>
   </div>
 </div>
-<script>
-const URL_PATH = '<?php echo URL_PATH; ?>';
-const token = '<?php echo $invitacion->token_acceso; ?>';
-const mapaColores = <?php echo json_encode(AsistenciaController::$colores); ?>;
-let idReto = 0;
-let frutaSel = '';
-let animalSel = '';
-let colorSel = '';
-
-function seleccionar(elemento, grupo) {
-  document.querySelectorAll(`#${grupo}s .seleccionado`).forEach(el => el.classList.remove('seleccionado'));
-  elemento.classList.add('seleccionado');
-}
-
-function renderOpciones(cont, opciones, tipo) {
-  cont.innerHTML = '';
-  opciones.forEach(opt => {
-    const nombre = tipo === 'color'
-      ? Object.keys(mapaColores).find(k => mapaColores[k] === opt)
-      : opt.split('/').pop().replace(/\.[^.]+$/, '');
-    const el = tipo === 'color' ? document.createElement('button') : document.createElement('img');
-    if (tipo === 'color') {
-      el.style.backgroundColor = opt;
-    } else {
-      el.src = opt;
-      el.alt = nombre;
-    }
-    el.addEventListener('click', () => {
-      if (tipo === 'fruta') frutaSel = nombre;
-      if (tipo === 'animal') animalSel = nombre;
-      if (tipo === 'color') colorSel = nombre;
-      seleccionar(el, tipo);
-    });
-    cont.appendChild(el);
-  });
-}
-
-async function cargarReto(){
-    const res = await fetch('<?php echo URL_PATH; ?>asistencia/obtenerRetoActivo/'+token);
-    const data = await res.json();
-    if(data.exito){
-        idReto = data.id_reto;
-        renderOpciones(document.getElementById('frutas'), data.opciones_frutas, 'fruta');
-        renderOpciones(document.getElementById('animales'), data.opciones_animales, 'animal');
-        renderOpciones(document.getElementById('colores'), data.opciones_colores, 'color');
-    }
-}
-
-async function verificar(){
-    if(!frutaSel || !colorSel || !animalSel){
-        document.getElementById('mensaje').textContent='Debes seleccionar los tres elementos.';
-        return;
-    }
-    const fd=new FormData();
-    fd.append('token',token);
-    fd.append('id_reto',idReto);
-    fd.append('fruta',frutaSel);
-    fd.append('color',colorSel);
-    fd.append('animal',animalSel);
-    const res=await fetch('<?php echo URL_PATH; ?>validar_reto.php',{method:'POST',body:fd});
-    const data=await res.json();
-    if(data.exito){
-        document.getElementById('mensaje').textContent='✅ Asistencia registrada';
-        document.getElementById('confirmar').disabled=true;
-    }else{
-        const msg=data.mensaje?data.mensaje:'Código incorrecto';
-        document.getElementById('mensaje').textContent=msg;
-    }
-}
-
-document.getElementById('confirmar').addEventListener('click', verificar);
-setInterval(cargarReto,15000);
-cargarReto();
-</script>
