@@ -92,7 +92,7 @@ body {
   transition: transform 0.2s ease;
 }
 
-.opciones img, .opciones button {
+.opciones img, .opciones .color-opcion {
   width: 80px;
   height: 80px;
   border: 2px solid #ccc;
@@ -106,7 +106,7 @@ body {
 }
 
 .opciones input[type="radio"]:checked + img,
-.opciones input[type="radio"]:checked + button {
+.opciones input[type="radio"]:checked + .color-opcion {
   border: 4px solid #28a745;
   transform: scale(1.15);
   box-shadow: 0 0 10px rgba(40, 167, 69, 0.7);
@@ -164,7 +164,7 @@ body {
           <?php foreach($colores as $color): ?>
             <label>
               <input type="radio" name="color" value="<?= $color['nombre'] ?>" required>
-              <button style="background:<?= $color['hex'] ?>;"></button>
+              <div class="color-opcion" style="background:<?= $color['hex'] ?>;"></div>
             </label>
           <?php endforeach; ?>
         </div>
