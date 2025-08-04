@@ -29,6 +29,7 @@ foreach (AsistenciaController::$colores as $nombre => $hex) {
 shuffle($frutas);
 shuffle($animales);
 shuffle($colores);
+$colores = array_slice($colores, 0, 6);
 
 // Obtener ID del reto activo
 ob_start();
@@ -81,20 +82,23 @@ body {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .opciones label {
   cursor: pointer;
   display: inline-block;
   text-align: center;
+  transition: transform 0.2s ease;
 }
 
 .opciones img, .opciones button {
   width: 80px;
   height: 80px;
-  border: 2px solid transparent;
-  border-radius: 5px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  transition: all 0.2s ease;
 }
 
 .opciones input[type="radio"] {
@@ -103,7 +107,10 @@ body {
 
 .opciones input[type="radio"]:checked + img,
 .opciones input[type="radio"]:checked + button {
-  border: 3px solid #2ecc71;
+  border: 4px solid #28a745;
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.7);
+  z-index: 2;
 }
 
 .boton-verificar {
@@ -125,27 +132,27 @@ body {
 
 <div class="container container-main d-flex align-items-center">
   <div class="w-100" style="max-width:600px;margin:auto;">
+    <div class="mensaje">
+      ✅ Paso 1 Completado: Sabemos que eres tú porque accediste con tu enlace único.
+    </div>
+
     <div class="wizard-header">
       <span class="wizard-step">Paso 2 de 2</span>
       <h2>Verificación de Asistencia</h2>
       <p>Selecciona los elementos que viste en la pantalla compartida del evento.</p>
     </div>
 
-    <div class="mensaje">
-      ✅ Paso 1 Completado: Sabemos que eres tú porque accediste con tu enlace único.
-    </div>
-
-    <form method="POST" action="<?php echo URL_PATH; ?>validar_reto.php">
-      <input type="hidden" name="token" value="<?php echo $invitacion->token_acceso; ?>">
-      <input type="hidden" name="id_reto" value="<?php echo $idReto; ?>">
+    <form method="POST" action="<?= URL_PATH; ?>validar_reto.php">
+      <input type="hidden" name="token" value="<?= $invitacion->token_acceso; ?>">
+      <input type="hidden" name="id_reto" value="<?= $idReto; ?>">
 
       <div class="wizard-section">
         <h3>1️⃣ Selecciona la fruta que viste:</h3>
         <div class="opciones">
           <?php foreach($frutas as $fruta): ?>
             <label>
-              <input type="radio" name="fruta" value="<?php echo $fruta['nombre']; ?>" required>
-              <img src="<?php echo $fruta['url']; ?>" alt="<?php echo $fruta['nombre']; ?>">
+              <input type="radio" name="fruta" value="<?= $fruta['nombre'] ?>" required>
+              <img src="<?= $fruta['url'] ?>" alt="<?= $fruta['nombre'] ?>">
             </label>
           <?php endforeach; ?>
         </div>
@@ -156,8 +163,8 @@ body {
         <div class="opciones">
           <?php foreach($colores as $color): ?>
             <label>
-              <input type="radio" name="color" value="<?php echo $color['nombre']; ?>" required>
-              <button style="background:<?php echo $color['hex']; ?>;"></button>
+              <input type="radio" name="color" value="<?= $color['nombre'] ?>" required>
+              <button style="background:<?= $color['hex'] ?>;"></button>
             </label>
           <?php endforeach; ?>
         </div>
@@ -168,8 +175,8 @@ body {
         <div class="opciones">
           <?php foreach($animales as $animal): ?>
             <label>
-              <input type="radio" name="animal" value="<?php echo $animal['nombre']; ?>" required>
-              <img src="<?php echo $animal['url']; ?>" alt="<?php echo $animal['nombre']; ?>">
+              <input type="radio" name="animal" value="<?= $animal['nombre'] ?>" required>
+              <img src="<?= $animal['url'] ?>" alt="<?= $animal['nombre'] ?>">
             </label>
           <?php endforeach; ?>
         </div>
