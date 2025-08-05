@@ -1,227 +1,186 @@
 <?php
 // El header.php se carga automáticamente desde el controlador.
 $evento = $datos['evento'];
+
+$base_url = URL_PATH . 'core/img/clave_visual/';
+$api_url  = URL_PATH . 'get_codigo_reto.php?id_evento=' . $evento->id;
+$token_data = @json_decode(@file_get_contents($api_url), true) ?: [];
+
+$fruta = ['url' => '', 'nombre' => ''];
+$animal = ['url' => '', 'nombre' => ''];
+$color = '#ffffff';
+$tiempo_restante = 40;
+
+if (($token_data['estado'] ?? '') === 'activo') {
+    $fruta['url']  = $token_data['fruta_img'];
+    $animal['url'] = $token_data['animal_img'];
+    $color         = $token_data['color_hex'];
+    $tiempo_restante = $token_data['tiempo_restante'];
+
+    if (!filter_var($fruta['url'], FILTER_VALIDATE_URL)) {
+        $fruta['url'] = $base_url . 'frutas/' . $fruta['url'];
+    }
+    if (!filter_var($animal['url'], FILTER_VALIDATE_URL)) {
+        $animal['url'] = $base_url . 'animales/' . $animal['url'];
+    }
+
+    $fruta['nombre']  = ucfirst(pathinfo($fruta['url'], PATHINFO_FILENAME));
+    $animal['nombre'] = ucfirst(pathinfo($animal['url'], PATHINFO_FILENAME));
+}
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kiosko Virtual</title>
+    <style>
+body {
+  background: #f7f9fc;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+.kiosko-wrapper {
+  width: 100%;
+  max-width: 900px;
+  padding: 20px;
+}
 
-<style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-    }
+.kiosko-card {
+  background: #fff;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  text-align: center;
+}
 
-    body {
-        background: #1c1c1c;
-        color: #f8f9fa;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        font-family: 'Poppins', sans-serif;
-    }
+.titulo-kiosko {
+  font-size: 26px;
+  color: #333;
+  margin-bottom: 20px;
+}
 
-    .background-gradient {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(45deg, #0d6efd, #6f42c1, #d63384);
-        background-size: 400% 400%;
-        animation: gradientAnimation 15s ease infinite;
-        filter: blur(150px);
-        z-index: -1;
-    }
+.clave-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin: 20px 0;
+}
 
-    @keyframes gradientAnimation {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
+.item img {
+  width: 150px;
+  height: auto;
+  object-fit: contain;
+}
 
-    .kiosco-container {
-        width: 100%;
-        max-width: 500px;
-        padding: 2rem;
-    }
+.color-box {
+  width: 150px;
+  height: 150px;
+  border: 3px solid #000;
+  border-radius: 10px;
+}
 
-    #card-kiosco {
-        background: #fff !important;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        text-align: center;
-    }
+.progreso {
+  margin-top: 25px;
+  position: relative;
+  width: 100%;
+}
 
-    .reto-visual {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        margin: 1.5rem 0;
-    }
+#barra-progreso {
+  width: 100%;
+  height: 20px;
+  background: #28a745;
+  border-radius: 5px;
+  transition: width 1s linear;
+}
 
-    .reto-img {
-        width: 80px;
-        height: 80px;
-        object-fit: contain;
-    }
-
-    .color-btn {
-        width: 50px;
-        height: 50px;
-        border: none;
-    }
-
-    .progress-container {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-top: 2rem;
-    }
-
-    .progress {
-        flex-grow: 1;
-        height: 8px;
-        background-color: rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        overflow: hidden;
-    }
-
-    #progress-bar {
-        height: 100%;
-        width: 100%;
-        background: #28a745;
-        transition: width 1s linear, background-color .3s ease;
-    }
-
-    #minutos-restantes {
-        font-family: 'Share Tech Mono', monospace;
-        font-size: 1.2rem;
-        color: #adb5bd;
-        flex-shrink: 0;
-    }
-
-    .event-title {
-        font-weight: 700;
-        color: #ffffff;
-    }
-
-    .event-details {
-        color: #e9ecef;
-        font-weight: 300;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        padding-top: 1rem;
-        margin-top: 1rem;
-    }
-
-    .text-muted {
-        color: #adb5bd !important;
-    }
-</style>
+#contador {
+  display: block;
+  margin-top: 10px;
+  font-size: 20px;
+  color: #555;
+}
+    </style>
 </head>
-
 <body>
-    <div class="background-gradient"></div>
+<div class="kiosko-wrapper">
+  <div class="kiosko-card">
+    <h1 class="titulo-kiosko">🔹 Clave Dinámica del Reto Actual 🔹</h1>
 
-    <div class="kiosco-container">
-        <div id="card-kiosco">
-            <h1 class="event-title h2"><?php echo htmlspecialchars($evento->nombre_evento); ?></h1>
-
-            <p class="text-muted mt-4">Código vigente:</p>
-            <div class="reto-visual">
-                <img id="fruta" class="reto-img" src="" alt="fruta">
-                <button id="color-boton" class="color-btn"></button>
-                <img id="animal" class="reto-img" src="" alt="animal">
-            </div>
-
-            <div class="progress-container">
-                <div class="progress">
-                    <div id="progress-bar" role="progressbar"></div>
-                </div>
-                <div id="minutos-restantes">--:--</div>
-            </div>
-
-            <div class="event-details mt-3">
-                <small><i class="bi bi-calendar-event me-2"></i><?php echo date('d/m/Y', strtotime($evento->fecha_evento)); ?></small>
-                <?php if (!empty($evento->nombre_instructor)): ?>
-                    <small class="d-block mt-1"><i class="bi bi-person-video3 me-2"></i><?php echo htmlspecialchars($evento->nombre_instructor); ?></small>
-                <?php endif; ?>
-            </div>
-        </div>
+    <div class="clave-visual">
+      <div class="item"><img id="fruta" src="<?= htmlspecialchars($fruta['url']) ?>" alt="<?= htmlspecialchars($fruta['nombre']) ?>"></div>
+      <div class="item"><button id="color-boton" class="color-box" style="background:<?= htmlspecialchars($color) ?>;"></button></div>
+      <div class="item"><img id="animal" src="<?= htmlspecialchars($animal['url']) ?>" alt="<?= htmlspecialchars($animal['nombre']) ?>"></div>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const frutaElem = document.getElementById('fruta');
-        const animalElem = document.getElementById('animal');
-        const colorBtn = document.getElementById('color-boton');
-        const progressBar = document.getElementById('progress-bar');
-        const minutosRestantesElem = document.getElementById('minutos-restantes');
-        let countdownInterval = null;
+    <div class="progreso">
+      <div id="barra-progreso"></div>
+      <span id="contador"><?= (int)$tiempo_restante ?></span>
+    </div>
+  </div>
+</div>
 
-        function iniciarContador(duracion) {
-            clearInterval(countdownInterval);
-            let segundosRestantes = duracion;
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  let tiempo = parseInt(document.getElementById('contador').textContent, 10) || 40;
+  const barra = document.getElementById('barra-progreso');
+  const contador = document.getElementById('contador');
+  const frutaElem = document.getElementById('fruta');
+  const animalElem = document.getElementById('animal');
+  const colorBtn = document.getElementById('color-boton');
 
-            function actualizarVista() {
-                const minutos = Math.floor(segundosRestantes / 60);
-                const segundos = segundosRestantes % 60;
-                minutosRestantesElem.textContent =
-                    `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+  function actualizarVista() {
+    contador.textContent = tiempo;
+    barra.style.width = (tiempo / 40) * 100 + '%';
+    if (tiempo <= 5) barra.style.background = '#dc3545';
+    else if (tiempo <= 15) barra.style.background = '#ffc107';
+    else barra.style.background = '#28a745';
+  }
 
-                const progreso = (segundosRestantes / duracion) * 100;
-                progressBar.style.width = progreso + '%';
-
-                if (segundosRestantes <= 5) {
-                    progressBar.style.backgroundColor = '#dc3545';
-                } else if (segundosRestantes <= 15) {
-                    progressBar.style.backgroundColor = '#ffc107';
-                } else {
-                    progressBar.style.backgroundColor = '#28a745';
-                }
-            }
-
-            actualizarVista();
-            countdownInterval = setInterval(() => {
-                segundosRestantes--;
-                actualizarVista();
-
-                if (segundosRestantes < 0) {
-                    clearInterval(countdownInterval);
-                    actualizarToken();
-                }
-            }, 1000);
+  async function actualizarToken() {
+    try {
+      const response = await fetch('<?= URL_PATH; ?>get_codigo_reto.php?id_evento=<?= $evento->id; ?>');
+      if (!response.ok) throw new Error('Error de red');
+      const data = await response.json();
+      if (data.estado === 'activo') {
+        let frutaUrl = data.fruta_img;
+        let animalUrl = data.animal_img;
+        if (!/^https?:\/\//i.test(frutaUrl)) {
+          frutaUrl = '<?= $base_url ?>frutas/' + frutaUrl;
         }
-
-        async function actualizarToken() {
-            try {
-                const response = await fetch('<?php echo URL_PATH; ?>get_codigo_reto.php?id_evento=<?php echo $evento->id; ?>');
-                if (!response.ok) throw new Error('Error de red');
-
-                const data = await response.json();
-
-                if (data.estado === 'activo') {
-                    frutaElem.src = data.fruta_img;
-                    animalElem.src = data.animal_img;
-                    colorBtn.style.backgroundColor = data.color_hex;
-                    iniciarContador(data.tiempo_restante);
-                } else {
-                    frutaElem.src = '';
-                    animalElem.src = '';
-                    colorBtn.style.backgroundColor = '#ffffff';
-                }
-            } catch (error) {
-                console.error('Error al obtener el código:', error);
-            }
+        if (!/^https?:\/\//i.test(animalUrl)) {
+          animalUrl = '<?= $base_url ?>animales/' + animalUrl;
         }
+        frutaElem.src = frutaUrl;
+        frutaElem.alt = frutaUrl.split('/').pop().split('.')[0];
+        animalElem.src = animalUrl;
+        animalElem.alt = animalUrl.split('/').pop().split('.')[0];
+        colorBtn.style.background = data.color_hex;
+        tiempo = data.tiempo_restante;
+        actualizarVista();
+      }
+    } catch (err) {
+      console.error('Error al obtener el código:', err);
+    }
+  }
 
-        actualizarToken();
-    });
-    </script>
+  actualizarVista();
+  setInterval(() => {
+    tiempo--;
+    if (tiempo <= 0) {
+      actualizarToken();
+      tiempo = 40;
+    }
+    actualizarVista();
+  }, 1000);
+});
+</script>
 </body>
 </html>
