@@ -36,20 +36,21 @@ if (($token_data['estado'] ?? '') === 'activo') {
     <title>Kiosko Virtual</title>
     <style>
 body {
-  background: #f7f9fc;
-  font-family: 'Segoe UI', sans-serif;
   margin: 0;
-  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-.kiosko-wrapper {
+#fondo-dinamico {
   width: 100%;
-  max-width: 900px;
-  padding: 20px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 1s ease;
 }
 
 .kiosko-card {
@@ -58,11 +59,13 @@ body {
   padding: 30px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   text-align: center;
+  max-width: 800px;
+  width: 90%;
 }
 
 .titulo-kiosko {
-  font-size: 26px;
-  color: #333;
+  font-size: 28px;
+  color: #222;
   margin-bottom: 20px;
 }
 
@@ -70,47 +73,55 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 30px;
-  margin: 20px 0;
+  gap: 40px;
+  margin: 25px 0;
 }
 
 .item img {
-  width: 150px;
+  width: 180px;
   height: auto;
   object-fit: contain;
 }
 
 .color-box {
-  width: 150px;
-  height: 150px;
+  width: 180px;
+  height: 180px;
   border: 3px solid #000;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .progreso {
-  margin-top: 25px;
-  position: relative;
+  margin-top: 20px;
   width: 100%;
 }
 
 #barra-progreso {
   width: 100%;
-  height: 20px;
+  height: 25px;
   background: #28a745;
   border-radius: 5px;
   transition: width 1s linear;
 }
 
+#barra-progreso.parpadeo {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
 #contador {
   display: block;
-  margin-top: 10px;
-  font-size: 20px;
-  color: #555;
+  font-size: 24px;
+  margin-top: 8px;
+  color: #444;
 }
     </style>
 </head>
 <body>
-<div class="kiosko-wrapper">
+<div class="kiosko-wrapper" id="fondo-dinamico">
   <div class="kiosko-card">
     <h1 class="titulo-kiosko">🔹 Clave Dinámica del Reto Actual 🔹</h1>
 
@@ -135,6 +146,16 @@ document.addEventListener('DOMContentLoaded', function () {
   const frutaElem = document.getElementById('fruta');
   const animalElem = document.getElementById('animal');
   const colorBtn = document.getElementById('color-boton');
+  const fondo = document.getElementById('fondo-dinamico');
+
+  const fondos = ["#1e3c72", "#2a5298", "#0f2027", "#4b6cb7", "#182848"];
+  let indiceFondo = 0;
+
+  function cambiarFondo() {
+    fondo.style.background = fondos[indiceFondo];
+    indiceFondo = (indiceFondo + 1) % fondos.length;
+  }
+  cambiarFondo();
 
   function actualizarVista() {
     contador.textContent = tiempo;
@@ -142,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tiempo <= 5) barra.style.background = '#dc3545';
     else if (tiempo <= 15) barra.style.background = '#ffc107';
     else barra.style.background = '#28a745';
+    barra.classList.toggle('parpadeo', tiempo <= 10);
   }
 
   async function actualizarToken() {
@@ -163,7 +185,8 @@ document.addEventListener('DOMContentLoaded', function () {
         animalElem.src = animalUrl;
         animalElem.alt = animalUrl.split('/').pop().split('.')[0];
         colorBtn.style.background = data.color_hex;
-        tiempo = data.tiempo_restante;
+        tiempo = data.tiempo_restante || 40;
+        cambiarFondo();
         actualizarVista();
       }
     } catch (err) {
