@@ -9,260 +9,219 @@ $evento = $datos['evento'];
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <style>
-	html,
-	body {
-		height: 100%;
-		margin: 0;
-		padding: 0;
-		overflow: hidden;
-	}
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
 
-	body {
-		background: #1c1c1c;
-		color: #f8f9fa;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		text-align: center;
-		font-family: 'Poppins', sans-serif;
-	}
+    body {
+        background: #1c1c1c;
+        color: #f8f9fa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-family: 'Poppins', sans-serif;
+    }
 
-	.background-gradient {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		background: linear-gradient(45deg, #0d6efd, #6f42c1, #d63384);
-		background-size: 400% 400%;
-		animation: gradientAnimation 15s ease infinite;
-		filter: blur(150px);
-		z-index: -1;
-	}
+    .background-gradient {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #0d6efd, #6f42c1, #d63384);
+        background-size: 400% 400%;
+        animation: gradientAnimation 15s ease infinite;
+        filter: blur(150px);
+        z-index: -1;
+    }
 
-	@keyframes gradientAnimation {
-		0% {
-			background-position: 0% 50%;
-		}
+    @keyframes gradientAnimation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 
-		50% {
-			background-position: 100% 50%;
-		}
+    .kiosco-container {
+        width: 100%;
+        max-width: 500px;
+        padding: 2rem;
+    }
 
-		100% {
-			background-position: 0% 50%;
-		}
-	}
+    #card-kiosco {
+        background: #fff !important;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        text-align: center;
+    }
 
-	.kiosco-container {
-		width: 100%;
-		max-width: 500px;
-		padding: 2rem;
-	}
+    .reto-visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin: 1.5rem 0;
+    }
 
-        #card-kiosco {
-                background: #fff !important;
-                border-radius: 10px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                padding: 20px;
-                text-align: center;
-        }
+    .reto-img {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+    }
 
+    .color-btn {
+        width: 50px;
+        height: 50px;
+        border: none;
+    }
 
-        .reto-visual {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 20px;
-                margin: 1.5rem 0;
-        }
+    .progress-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-top: 2rem;
+    }
 
-        .reto-img {
-                width: 80px;
-                height: 80px;
-                object-fit: contain;
-        }
+    .progress {
+        flex-grow: 1;
+        height: 8px;
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
 
-        .color-btn {
-                width: 50px;
-                height: 50px;
-                border: none;
-        }
+    #progress-bar {
+        height: 100%;
+        width: 100%;
+        background: #28a745;
+        transition: width 1s linear, background-color .3s ease;
+    }
 
-	.progress-container {
-		display: flex;
-		align-items: center;
-		gap: 15px;
-		margin-top: 2rem;
-	}
+    #minutos-restantes {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 1.2rem;
+        color: #adb5bd;
+        flex-shrink: 0;
+    }
 
-	.progress {
-		flex-grow: 1;
-		height: 8px;
-		background-color: rgba(255, 255, 255, 0.1);
-		border-radius: 8px;
-		overflow: hidden;
-	}
+    .event-title {
+        font-weight: 700;
+        color: #ffffff;
+    }
 
-	/* Esta clase ahora se aplica al div interior con id="progress-bar" */
-	#progress-bar {
-		transition: background-color 0.5s ease, width 0.2s ease !important;
-		border-radius: 8px;
-	}
+    .event-details {
+        color: #e9ecef;
+        font-weight: 300;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 1rem;
+        margin-top: 1rem;
+    }
 
-	.progress-bar-white {
-		background-color: #f8f9fa;
-	}
-
-        .progress-bar-black {
-                background-color: #000000;
-        }
-
-
-	#minutos-restantes {
-		font-family: 'Share Tech Mono', monospace;
-		font-size: 1.2rem;
-		color: #adb5bd;
-		flex-shrink: 0;
-	}
-
-	@keyframes blink-animation {
-		50% {
-			opacity: 0.2;
-		}
-	}
-
-	.blinking-bar {
-		animation: blink-animation 1s infinite;
-	}
-
-	.event-title {
-		font-weight: 700;
-		color: #ffffff;
-	}
-
-	.event-details {
-		color: #e9ecef;
-		font-weight: 300;
-		border-top: 1px solid rgba(255, 255, 255, 0.1);
-		padding-top: 1rem;
-		margin-top: 1rem;
-	}
-
-	.text-muted {
-		color: #adb5bd !important;
-	}
+    .text-muted {
+        color: #adb5bd !important;
+    }
 </style>
 </head>
 
 <body>
+    <div class="background-gradient"></div>
 
-	<div class="background-gradient"></div>
+    <div class="kiosco-container">
+        <div id="card-kiosco">
+            <h1 class="event-title h2"><?php echo htmlspecialchars($evento->nombre_evento); ?></h1>
 
-        <div class="kiosco-container">
-                <div id="card-kiosco">
-			<h1 class="event-title h2"><?php echo htmlspecialchars($evento->nombre_evento); ?></h1>
+            <p class="text-muted mt-4">Código vigente:</p>
+            <div class="reto-visual">
+                <img id="fruta" class="reto-img" src="" alt="fruta">
+                <button id="color-boton" class="color-btn"></button>
+                <img id="animal" class="reto-img" src="" alt="animal">
+            </div>
 
-                        <p class="text-muted mt-4">Código vigente:</p>
-                        <div class="reto-visual">
-                                <img id="fruta" class="reto-img" src="" alt="fruta">
-                                <button id="color-boton" class="color-btn"></button>
-                                <img id="animal" class="reto-img" src="" alt="animal">
-                        </div>
+            <div class="progress-container">
+                <div class="progress">
+                    <div id="progress-bar" role="progressbar"></div>
+                </div>
+                <div id="minutos-restantes">--:--</div>
+            </div>
 
-			<div class="progress-container">
-				<div class="progress">
-					<div id="progress-bar" class="progress" role="progressbar" style="width: 100%"></div>
-				</div>
-				<div id="minutos-restantes">--:--</div>
-			</div>
+            <div class="event-details mt-3">
+                <small><i class="bi bi-calendar-event me-2"></i><?php echo date('d/m/Y', strtotime($evento->fecha_evento)); ?></small>
+                <?php if (!empty($evento->nombre_instructor)): ?>
+                    <small class="d-block mt-1"><i class="bi bi-person-video3 me-2"></i><?php echo htmlspecialchars($evento->nombre_instructor); ?></small>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 
-			<div class="event-details mt-3">
-				<small><i class="bi bi-calendar-event me-2"></i><?php echo date('d/m/Y', strtotime($evento->fecha_evento)); ?></small>
-				<?php if (!empty($evento->nombre_instructor)): ?>
-					<small><i class="bi bi-person-video3 me-2"></i><?php echo htmlspecialchars($evento->nombre_instructor); ?></small>
-				<?php endif; ?>
-			</div>
-		</div>
-	</div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const frutaElem = document.getElementById('fruta');
+        const animalElem = document.getElementById('animal');
+        const colorBtn = document.getElementById('color-boton');
+        const progressBar = document.getElementById('progress-bar');
+        const minutosRestantesElem = document.getElementById('minutos-restantes');
+        let countdownInterval = null;
 
-	<script>
-                document.addEventListener('DOMContentLoaded', function() {
-                        const frutaElem = document.getElementById('fruta');
-                        const animalElem = document.getElementById('animal');
-                        const colorBtn = document.getElementById('color-boton');
-                        const progressBar = document.getElementById('progress-bar');
-                        const minutosRestantesElem = document.getElementById('minutos-restantes');
-                        let countdownInterval = null;
+        function iniciarContador(duracion) {
+            clearInterval(countdownInterval);
+            let segundosRestantes = duracion;
 
-			function iniciarContador(duracion) {
-				clearInterval(countdownInterval);
-                                progressBar.classList.remove('blinking-bar', 'progress-bar-white', 'progress-bar-black');
+            function actualizarVista() {
+                const minutos = Math.floor(segundosRestantes / 60);
+                const segundos = segundosRestantes % 60;
+                minutosRestantesElem.textContent =
+                    `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
 
-				let segundosRestantes = duracion;
+                const progreso = (segundosRestantes / duracion) * 100;
+                progressBar.style.width = progreso + '%';
 
-				function actualizarVista() {
-					const minutos = Math.floor(segundosRestantes / 60);
-					const segundos = segundosRestantes % 60;
-					minutosRestantesElem.textContent = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+                if (segundosRestantes <= 5) {
+                    progressBar.style.backgroundColor = '#dc3545';
+                } else if (segundosRestantes <= 15) {
+                    progressBar.style.backgroundColor = '#ffc107';
+                } else {
+                    progressBar.style.backgroundColor = '#28a745';
+                }
+            }
 
-					const progreso = (segundosRestantes / duracion) * 100;
-					progressBar.style.width = progreso + '%';
+            actualizarVista();
+            countdownInterval = setInterval(() => {
+                segundosRestantes--;
+                actualizarVista();
 
-					const bloqueActual = Math.floor((duracion - segundosRestantes) / 5);
-                                        if (bloqueActual % 2 === 0) {
-                                                progressBar.classList.remove('progress-bar-black');
-                                                progressBar.classList.add('progress-bar-white');
-                                        } else {
-                                                progressBar.classList.remove('progress-bar-white');
-                                                progressBar.classList.add('progress-bar-black');
-                                        }
+                if (segundosRestantes < 0) {
+                    clearInterval(countdownInterval);
+                    actualizarToken();
+                }
+            }, 1000);
+        }
 
-                                        // Parpadeo al faltar 15 segundos
-                                        if (segundosRestantes <= 15) {
-                                                progressBar.classList.add('blinking-bar');
-                                        } else {
-                                                progressBar.classList.remove('blinking-bar');
-                                        }
-				}
+        async function actualizarToken() {
+            try {
+                const response = await fetch('<?php echo URL_PATH; ?>get_codigo_reto.php?id_evento=<?php echo $evento->id; ?>');
+                if (!response.ok) throw new Error('Error de red');
 
-				actualizarVista();
+                const data = await response.json();
 
-				countdownInterval = setInterval(() => {
-					segundosRestantes--;
-					actualizarVista();
+                if (data.estado === 'activo') {
+                    frutaElem.src = data.fruta_img;
+                    animalElem.src = data.animal_img;
+                    colorBtn.style.backgroundColor = data.color_hex;
+                    iniciarContador(data.tiempo_restante);
+                } else {
+                    frutaElem.src = '';
+                    animalElem.src = '';
+                    colorBtn.style.backgroundColor = '#ffffff';
+                }
+            } catch (error) {
+                console.error('Error al obtener el código:', error);
+            }
+        }
 
-					if (segundosRestantes < 0) {
-						clearInterval(countdownInterval);
-						actualizarToken();
-					}
-				}, 1000);
-			}
-
-                        async function actualizarToken() {
-                                try {
-                                        const response = await fetch('<?php echo URL_PATH; ?>get_codigo_reto.php?id_evento=<?php echo $evento->id; ?>');
-                                        if (!response.ok) throw new Error('Error de red');
-
-                                        const data = await response.json();
-
-                                        if (data.estado === 'activo') {
-                                                frutaElem.src = data.fruta_img;
-                                                animalElem.src = data.animal_img;
-                                                colorBtn.style.backgroundColor = data.color_hex;
-                                                iniciarContador(data.tiempo_restante);
-                                        } else {
-                                                frutaElem.src = '';
-                                                animalElem.src = '';
-                                                colorBtn.style.backgroundColor = '#ffffff';
-                                        }
-                                } catch (error) {
-                                        console.error('Error al obtener el código:', error);
-                                }
-                        }
-
-                        actualizarToken();
-		});
-	</script>
-
+        actualizarToken();
+    });
+    </script>
 </body>
-
 </html>
