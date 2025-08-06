@@ -153,7 +153,7 @@ const claveDinamica = {
 };
 
 function esURLValida(url) {
-  return /^https?:\/\//i.test(url);
+  return /^https?:\/\//i.test(url) || url.startsWith('/');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (data.fruta && esURLValida(data.fruta.url)) {
       const imgFruta = document.createElement('img');
-      imgFruta.src = data.fruta.url;
+      imgFruta.src = data.fruta.url.startsWith('/') ? '<?= URL_PATH ?>' + data.fruta.url : data.fruta.url;
       imgFruta.alt = data.fruta.nombre;
       imgFruta.style.width = '180px';
       imgFruta.style.border = '2px solid #ccc';
@@ -201,7 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.color) {
       const btnColor = document.createElement('div');
       btnColor.className = 'color-box';
-      btnColor.style.background = data.color;
+      const colorHex = data.color.startsWith('#') ? data.color : '#' + data.color;
+      btnColor.style.background = colorHex;
       btnColor.style.width = '180px';
       btnColor.style.height = '180px';
       btnColor.style.border = '3px solid #000';
@@ -213,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (data.animal && esURLValida(data.animal.url)) {
       const imgAnimal = document.createElement('img');
-      imgAnimal.src = data.animal.url;
+      imgAnimal.src = data.animal.url.startsWith('/') ? '<?= URL_PATH ?>' + data.animal.url : data.animal.url;
       imgAnimal.alt = data.animal.nombre;
       imgAnimal.style.width = '180px';
       imgAnimal.style.border = '2px solid #ccc';
