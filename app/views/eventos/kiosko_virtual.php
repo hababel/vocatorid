@@ -5,28 +5,6 @@ $evento = $datos['evento'];
 $base_url = URL_PATH . 'core/img/clave_visual/';
 $api_url  = URL_PATH . 'get_codigo_reto.php?id_evento=' . $evento->id;
 $token_data = @json_decode(@file_get_contents($api_url), true) ?: [];
-
-$fruta = ['url' => '', 'nombre' => ''];
-$animal = ['url' => '', 'nombre' => ''];
-$color = '#ffffff';
-$tiempo_restante = 40;
-
-if (($token_data['estado'] ?? '') === 'activo') {
-    $fruta['url']  = $token_data['fruta_img'];
-    $animal['url'] = $token_data['animal_img'];
-    $color         = $token_data['color_hex'];
-    $tiempo_restante = $token_data['tiempo_restante'];
-
-    if (!filter_var($fruta['url'], FILTER_VALIDATE_URL)) {
-        $fruta['url'] = $base_url . 'frutas/' . $fruta['url'];
-    }
-    if (!filter_var($animal['url'], FILTER_VALIDATE_URL)) {
-        $animal['url'] = $base_url . 'animales/' . $animal['url'];
-    }
-
-    $fruta['nombre']  = ucfirst(pathinfo($fruta['url'], PATHINFO_FILENAME));
-    $animal['nombre'] = ucfirst(pathinfo($animal['url'], PATHINFO_FILENAME));
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -126,26 +104,28 @@ body {
     <h1 class="titulo-kiosko">🔹 Clave Dinámica del Reto Actual 🔹</h1>
 
     <div class="clave-visual">
-      <div class="item"><img id="fruta" src="<?= htmlspecialchars($fruta['url']) ?>" alt="<?= htmlspecialchars($fruta['nombre']) ?>"></div>
-      <div class="item"><button id="color-boton" class="color-box" style="background:<?= htmlspecialchars($color) ?>;"></button></div>
-      <div class="item"><img id="animal" src="<?= htmlspecialchars($animal['url']) ?>" alt="<?= htmlspecialchars($animal['nombre']) ?>"></div>
+      <div class="item" id="fruta-container"></div>
+      <div class="item" id="color-container"></div>
+      <div class="item" id="animal-container"></div>
     </div>
 
     <div class="progreso">
       <div id="barra-progreso"></div>
-      <span id="contador"><?= (int)$tiempo_restante ?></span>
+      <span id="contador"></span>
     </div>
   </div>
 </div>
 
 <script>
+const claveDinamica = <?= json_encode($token_data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+
 document.addEventListener('DOMContentLoaded', function () {
-  let tiempo = parseInt(document.getElementById('contador').textContent, 10) || 40;
+  let tiempo = parseInt(claveDinamica.tiempo_restante, 10) || 40;
   const barra = document.getElementById('barra-progreso');
   const contador = document.getElementById('contador');
-  const frutaElem = document.getElementById('fruta');
-  const animalElem = document.getElementById('animal');
-  const colorBtn = document.getElementById('color-boton');
+  const frutaContainer = document.getElementById('fruta-container');
+  const colorContainer = document.getElementById('color-container');
+  const animalContainer = document.getElementById('animal-container');
   const fondo = document.getElementById('fondo-dinamico');
 
   const fondos = ["#1e3c72", "#2a5298", "#0f2027", "#4b6cb7", "#182848"];
@@ -155,7 +135,6 @@ document.addEventListener('DOMContentLoaded', function () {
     fondo.style.background = fondos[indiceFondo];
     indiceFondo = (indiceFondo + 1) % fondos.length;
   }
-  cambiarFondo();
 
   function actualizarVista() {
     contador.textContent = tiempo;
@@ -166,35 +145,56 @@ document.addEventListener('DOMContentLoaded', function () {
     barra.classList.toggle('parpadeo', tiempo <= 10);
   }
 
+  function renderClave(data) {
+    frutaContainer.innerHTML = '';
+    colorContainer.innerHTML = '';
+    animalContainer.innerHTML = '';
+    if (data && data.estado === 'activo') {
+      let frutaUrl = data.fruta_img || '';
+      let animalUrl = data.animal_img || '';
+      if (!/^https?:\/\//i.test(frutaUrl)) {
+        frutaUrl = '<?= $base_url ?>frutas/' + frutaUrl;
+      }
+      if (!/^https?:\/\//i.test(animalUrl)) {
+        animalUrl = '<?= $base_url ?>animales/' + animalUrl;
+      }
+      const frutaImg = document.createElement('img');
+      frutaImg.src = frutaUrl;
+      frutaImg.alt = frutaUrl.split('/').pop().split('.')[0] || '';
+      frutaContainer.appendChild(frutaImg);
+
+      const colorBtn = document.createElement('button');
+      colorBtn.id = 'color-boton';
+      colorBtn.className = 'color-box';
+      colorBtn.style.background = data.color_hex;
+      colorContainer.appendChild(colorBtn);
+
+      const animalImg = document.createElement('img');
+      animalImg.src = animalUrl;
+      animalImg.alt = animalUrl.split('/').pop().split('.')[0] || '';
+      animalContainer.appendChild(animalImg);
+
+      tiempo = data.tiempo_restante || 40;
+      actualizarVista();
+    }
+  }
+
   async function actualizarToken() {
     try {
       const response = await fetch('<?= URL_PATH; ?>get_codigo_reto.php?id_evento=<?= $evento->id; ?>');
       if (!response.ok) throw new Error('Error de red');
       const data = await response.json();
       if (data.estado === 'activo') {
-        let frutaUrl = data.fruta_img;
-        let animalUrl = data.animal_img;
-        if (!/^https?:\/\//i.test(frutaUrl)) {
-          frutaUrl = '<?= $base_url ?>frutas/' + frutaUrl;
-        }
-        if (!/^https?:\/\//i.test(animalUrl)) {
-          animalUrl = '<?= $base_url ?>animales/' + animalUrl;
-        }
-        frutaElem.src = frutaUrl;
-        frutaElem.alt = frutaUrl.split('/').pop().split('.')[0];
-        animalElem.src = animalUrl;
-        animalElem.alt = animalUrl.split('/').pop().split('.')[0];
-        colorBtn.style.background = data.color_hex;
-        tiempo = data.tiempo_restante || 40;
+        renderClave(data);
         cambiarFondo();
-        actualizarVista();
       }
     } catch (err) {
       console.error('Error al obtener el código:', err);
     }
   }
 
-  actualizarVista();
+  renderClave(claveDinamica);
+  cambiarFondo();
   setInterval(() => {
     tiempo--;
     if (tiempo <= 0) {
