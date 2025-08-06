@@ -2,9 +2,31 @@
 // El header.php se carga automáticamente desde el controlador.
 $evento = $datos['evento'];
 
-$base_url = URL_PATH . 'core/img/clave_visual/';
 $api_url  = URL_PATH . 'get_codigo_reto.php?id_evento=' . $evento->id;
 $token_data = @json_decode(@file_get_contents($api_url), true) ?: [];
+
+// Preparar datos iniciales de la clave dinámica
+$fruta = [
+    'nombre' => $token_data['fruta'] ?? '',
+    'url'    => $token_data['fruta_img'] ?? ''
+];
+$animal = [
+    'nombre' => $token_data['animal'] ?? '',
+    'url'    => $token_data['animal_img'] ?? ''
+];
+$color = $token_data['color_hex'] ?? '';
+
+// Asegurar que las URLs sean absolutas y usen HTTPS
+foreach (['fruta', 'animal'] as $tipo) {
+    if (!empty(${$tipo}['url']) && stripos(${$tipo}['url'], 'https://') !== 0) {
+        ${$tipo}['url'] = preg_replace('/^http:\/\//i', 'https://', ${$tipo}['url']);
+        if (stripos(${$tipo}['url'], 'https://') !== 0) {
+            ${$tipo}['url'] = URL_PATH . ltrim(${$tipo}['url'], '/');
+        }
+    }
+}
+
+$tiempo_restante = isset($token_data['tiempo_restante']) ? (int)$token_data['tiempo_restante'] : 40;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -117,17 +139,32 @@ body {
 </div>
 
 <script>
-const claveDinamica = <?= json_encode($token_data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+const claveDinamica = {
+  fruta: {
+    nombre: "<?= htmlspecialchars($fruta['nombre'], ENT_QUOTES, 'UTF-8') ?>",
+    url: "<?= htmlspecialchars($fruta['url'], ENT_QUOTES, 'UTF-8') ?>"
+  },
+  animal: {
+    nombre: "<?= htmlspecialchars($animal['nombre'], ENT_QUOTES, 'UTF-8') ?>",
+    url: "<?= htmlspecialchars($animal['url'], ENT_QUOTES, 'UTF-8') ?>"
+  },
+  color: "<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>",
+  tiempo_restante: <?= $tiempo_restante ?>
+};
 
-document.addEventListener('DOMContentLoaded', function () {
-  let tiempo = parseInt(claveDinamica.tiempo_restante, 10) || 40;
+function esURLValida(url) {
+  return /^https?:\/\//i.test(url);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const frutaC = document.getElementById('fruta-container');
+  const colorC = document.getElementById('color-container');
+  const animalC = document.getElementById('animal-container');
   const barra = document.getElementById('barra-progreso');
   const contador = document.getElementById('contador');
-  const frutaContainer = document.getElementById('fruta-container');
-  const colorContainer = document.getElementById('color-container');
-  const animalContainer = document.getElementById('animal-container');
   const fondo = document.getElementById('fondo-dinamico');
 
+  let tiempo = parseInt(claveDinamica.tiempo_restante, 10) || 40;
   const fondos = ["#1e3c72", "#2a5298", "#0f2027", "#4b6cb7", "#182848"];
   let indiceFondo = 0;
 
@@ -146,36 +183,43 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function renderClave(data) {
-    frutaContainer.innerHTML = '';
-    colorContainer.innerHTML = '';
-    animalContainer.innerHTML = '';
-    if (data && data.estado === 'activo') {
-      let frutaUrl = data.fruta_img || '';
-      let animalUrl = data.animal_img || '';
-      if (!/^https?:\/\//i.test(frutaUrl)) {
-        frutaUrl = '<?= $base_url ?>frutas/' + frutaUrl;
-      }
-      if (!/^https?:\/\//i.test(animalUrl)) {
-        animalUrl = '<?= $base_url ?>animales/' + animalUrl;
-      }
-      const frutaImg = document.createElement('img');
-      frutaImg.src = frutaUrl;
-      frutaImg.alt = frutaUrl.split('/').pop().split('.')[0] || '';
-      frutaContainer.appendChild(frutaImg);
+    frutaC.innerHTML = '';
+    colorC.innerHTML = '';
+    animalC.innerHTML = '';
 
-      const colorBtn = document.createElement('button');
-      colorBtn.id = 'color-boton';
-      colorBtn.className = 'color-box';
-      colorBtn.style.background = data.color_hex;
-      colorContainer.appendChild(colorBtn);
+    if (data.fruta && esURLValida(data.fruta.url)) {
+      const imgFruta = document.createElement('img');
+      imgFruta.src = data.fruta.url;
+      imgFruta.alt = data.fruta.nombre;
+      imgFruta.style.width = '180px';
+      imgFruta.style.border = '2px solid #ccc';
+      frutaC.appendChild(imgFruta);
+    } else {
+      frutaC.innerHTML = "<p style='color:red;'>Imagen de fruta no disponible</p>";
+    }
 
-      const animalImg = document.createElement('img');
-      animalImg.src = animalUrl;
-      animalImg.alt = animalUrl.split('/').pop().split('.')[0] || '';
-      animalContainer.appendChild(animalImg);
+    if (data.color) {
+      const btnColor = document.createElement('div');
+      btnColor.className = 'color-box';
+      btnColor.style.background = data.color;
+      btnColor.style.width = '180px';
+      btnColor.style.height = '180px';
+      btnColor.style.border = '3px solid #000';
+      btnColor.style.borderRadius = '10px';
+      colorC.appendChild(btnColor);
+    } else {
+      colorC.innerHTML = "<p style='color:red;'>Color no disponible</p>";
+    }
 
-      tiempo = data.tiempo_restante || 40;
-      actualizarVista();
+    if (data.animal && esURLValida(data.animal.url)) {
+      const imgAnimal = document.createElement('img');
+      imgAnimal.src = data.animal.url;
+      imgAnimal.alt = data.animal.nombre;
+      imgAnimal.style.width = '180px';
+      imgAnimal.style.border = '2px solid #ccc';
+      animalC.appendChild(imgAnimal);
+    } else {
+      animalC.innerHTML = "<p style='color:red;'>Imagen de animal no disponible</p>";
     }
   }
 
@@ -185,8 +229,16 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!response.ok) throw new Error('Error de red');
       const data = await response.json();
       if (data.estado === 'activo') {
-        renderClave(data);
+        const nuevo = {
+          fruta: { nombre: data.fruta, url: data.fruta_img },
+          animal: { nombre: data.animal, url: data.animal_img },
+          color: data.color_hex,
+          tiempo_restante: data.tiempo_restante
+        };
+        renderClave(nuevo);
+        tiempo = nuevo.tiempo_restante || 40;
         cambiarFondo();
+        actualizarVista();
       }
     } catch (err) {
       console.error('Error al obtener el código:', err);
@@ -195,6 +247,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   renderClave(claveDinamica);
   cambiarFondo();
+  actualizarVista();
+
   setInterval(() => {
     tiempo--;
     if (tiempo <= 0) {
