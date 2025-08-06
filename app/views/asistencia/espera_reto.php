@@ -4,39 +4,65 @@ $invitacion = $datos['invitacion'];
 require_once APP_BASE_PHYSICAL_PATH . '/app/controller/AsistenciaController.php';
 require_once APP_BASE_PHYSICAL_PATH . '/core/config/recursos.php';
 
-// Obtener y barajar recursos de la clave visual
-$recursos = obtenerRecursosClaveVisual();
+// Obtener opciones del reto activo para este invitado
+ob_start();
+$ctrl = new AsistenciaController();
+$ctrl->obtenerRetoActivo($invitacion->token_acceso);
+$retoData = json_decode(ob_get_clean(), true) ?: [];
 
-$frutas = array_map(function ($archivo) {
-    return [
-        'nombre' => pathinfo($archivo, PATHINFO_FILENAME),
-        'url' => URL_PATH . 'core/img/clave_visual/frutas/' . $archivo
-    ];
-}, $recursos['frutas']);
+$frutas = $animales = $colores = [];
+$idReto = 0;
 
-$animales = array_map(function ($archivo) {
-    return [
-        'nombre' => pathinfo($archivo, PATHINFO_FILENAME),
-        'url' => URL_PATH . 'core/img/clave_visual/animales/' . $archivo
-    ];
-}, $recursos['animales']);
+if (($retoData['exito'] ?? false) && ($retoData['estado'] ?? '') === 'activo') {
+    $idReto = $retoData['id_reto'] ?? 0;
 
-$colores = [];
-foreach (AsistenciaController::$colores as $nombre => $hex) {
-    $colores[] = ['nombre' => $nombre, 'hex' => $hex];
+    foreach ($retoData['opciones_frutas'] as $url) {
+        $frutas[] = [
+            'nombre' => pathinfo($url, PATHINFO_FILENAME),
+            'url' => $url
+        ];
+    }
+
+    foreach ($retoData['opciones_animales'] as $url) {
+        $animales[] = [
+            'nombre' => pathinfo($url, PATHINFO_FILENAME),
+            'url' => $url
+        ];
+    }
+
+    $hexToNombre = array_flip(AsistenciaController::$colores);
+    foreach ($retoData['opciones_colores'] as $hex) {
+        $colores[] = [
+            'nombre' => $hexToNombre[$hex] ?? $hex,
+            'hex' => $hex
+        ];
+    }
+} else {
+    // Fallback: mostrar todos los recursos disponibles
+    $recursos = obtenerRecursosClaveVisual();
+    $frutas = array_map(function ($archivo) {
+        return [
+            'nombre' => pathinfo($archivo, PATHINFO_FILENAME),
+            'url' => URL_PATH . 'core/img/clave_visual/frutas/' . $archivo
+        ];
+    }, $recursos['frutas']);
+
+    $animales = array_map(function ($archivo) {
+        return [
+            'nombre' => pathinfo($archivo, PATHINFO_FILENAME),
+            'url' => URL_PATH . 'core/img/clave_visual/animales/' . $archivo
+        ];
+    }, $recursos['animales']);
+
+    foreach (AsistenciaController::$colores as $nombre => $hex) {
+        $colores[] = ['nombre' => $nombre, 'hex' => $hex];
+    }
 }
 
 shuffle($frutas);
 shuffle($animales);
 shuffle($colores);
-$colores = array_slice($colores, 0, 6);
 
-// Obtener ID del reto activo
-ob_start();
-$ctrl = new AsistenciaController();
-$ctrl->obtenerRetoActivo($invitacion->token_acceso);
-$retoData = json_decode(ob_get_clean(), true);
-$idReto = $retoData['id_reto'] ?? 0;
 header('Content-Type: text/html; charset=utf-8');
 ?>
 <style>

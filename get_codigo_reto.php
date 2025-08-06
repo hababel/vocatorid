@@ -46,5 +46,8 @@ echo json_encode([
     'fruta_img' => $datos['fruta_img'],
     'animal_img' => $datos['animal_img'],
     'color_hex' => $datos['color_hex'],
+    'fruta' => $datos['fruta'],
+    'animal' => $datos['animal'],
+    'color_nombre' => $datos['color_nombre'],
     'tiempo_restante' => $tiempo_restante
 ]);
