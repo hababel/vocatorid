@@ -138,25 +138,21 @@ body {
   </div>
 </div>
 
-<script>
-const claveDinamica = {
-  fruta: {
-    nombre: "<?= htmlspecialchars($fruta['nombre'], ENT_QUOTES, 'UTF-8') ?>",
-    url: "<?= htmlspecialchars($fruta['url'], ENT_QUOTES, 'UTF-8') ?>"
-  },
-  animal: {
-    nombre: "<?= htmlspecialchars($animal['nombre'], ENT_QUOTES, 'UTF-8') ?>",
-    url: "<?= htmlspecialchars($animal['url'], ENT_QUOTES, 'UTF-8') ?>"
-  },
-  color: "<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>",
-  tiempo_restante: <?= $tiempo_restante ?>
-};
+<div id="clave-data"
+     data-fruta-nombre="<?= htmlspecialchars($fruta['nombre'], ENT_QUOTES, 'UTF-8') ?>"
+     data-fruta-url="<?= htmlspecialchars($fruta['url'], ENT_QUOTES, 'UTF-8') ?>"
+     data-animal-nombre="<?= htmlspecialchars($animal['nombre'], ENT_QUOTES, 'UTF-8') ?>"
+     data-animal-url="<?= htmlspecialchars($animal['url'], ENT_QUOTES, 'UTF-8') ?>"
+     data-color="<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>"
+     data-tiempo-restante="<?= $tiempo_restante ?>" hidden></div>
 
+<script>
 function esURLValida(url) {
   return /^https?:\/\//i.test(url) || url.startsWith('/');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const dataEl = document.getElementById('clave-data');
   const frutaC = document.getElementById('fruta-container');
   const colorC = document.getElementById('color-container');
   const animalC = document.getElementById('animal-container');
@@ -164,7 +160,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const contador = document.getElementById('contador');
   const fondo = document.getElementById('fondo-dinamico');
 
-  let tiempo = parseInt(claveDinamica.tiempo_restante, 10) || 40;
+  const inicial = {
+    fruta: { nombre: dataEl.dataset.frutaNombre || '', url: dataEl.dataset.frutaUrl || '' },
+    animal: { nombre: dataEl.dataset.animalNombre || '', url: dataEl.dataset.animalUrl || '' },
+    color: dataEl.dataset.color || '',
+    tiempo_restante: parseInt(dataEl.dataset.tiempoRestante, 10) || 40
+  };
+
+  let tiempo = inicial.tiempo_restante;
   const fondos = ["#1e3c72", "#2a5298", "#0f2027", "#4b6cb7", "#182848"];
   let indiceFondo = 0;
 
@@ -237,6 +240,12 @@ document.addEventListener('DOMContentLoaded', () => {
           tiempo_restante: data.tiempo_restante
         };
         renderClave(nuevo);
+        dataEl.dataset.frutaNombre = data.fruta || '';
+        dataEl.dataset.frutaUrl = data.fruta_img || '';
+        dataEl.dataset.animalNombre = data.animal || '';
+        dataEl.dataset.animalUrl = data.animal_img || '';
+        dataEl.dataset.color = data.color_hex || '';
+        dataEl.dataset.tiempoRestante = data.tiempo_restante;
         tiempo = nuevo.tiempo_restante || 40;
         cambiarFondo();
         actualizarVista();
@@ -246,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  renderClave(claveDinamica);
+  renderClave(inicial);
   cambiarFondo();
   actualizarVista();
 
