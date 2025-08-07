@@ -63,6 +63,10 @@ shuffle($frutas);
 shuffle($animales);
 shuffle($colores);
 
+$frutas  = array_slice($frutas, 0, 6);
+$animales = array_slice($animales, 0, 6);
+$colores = array_slice($colores, 0, 6);
+
 header('Content-Type: text/html; charset=utf-8');
 ?>
 <style>

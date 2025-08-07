@@ -168,8 +168,12 @@ function datosDesdeCodigoVisual($codigo, $colores)
 /**
  * Genera un listado de opciones que incluye la respuesta correcta
  * y un número de distractores aleatorios.
+ *
+ * @param array $lista Lista total de elementos disponibles.
+ * @param mixed $correcta Elemento que debe estar presente en el listado.
+ * @param int $cantidad Cantidad total de opciones a generar (incluye la correcta). Por defecto 6.
  */
-function generarOpcionesLista(array $lista, $correcta, $cantidad = 5)
+function generarOpcionesLista(array $lista, $correcta, $cantidad = 6)
 {
         $opciones = [$correcta];
         $resto = array_values(array_diff($lista, [$correcta]));
