@@ -186,7 +186,7 @@ body {
       <p>Selecciona los elementos que viste en la pantalla compartida del evento.</p>
     </div>
 
-    <form method="POST" action="<?= URL_PATH; ?>validar_reto.php">
+    <form method="POST" action="<?= URL_PATH; ?>asistencia/validarReto">
       <input type="hidden" name="token" value="<?= $invitacion->token_acceso; ?>">
       <input type="hidden" name="id_reto" value="<?= $idReto; ?>">
 
@@ -247,10 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
         body: formData
       });
       const datos = await respuesta.json();
-      // DEBUG INICIO
-      console.log('Clave seleccionada:', datos.debug_seleccionada);
-      console.log('Clave correcta:', datos.debug_correcta);
-      // DEBUG FIN
       if (datos.exito) {
         mensajeDiv.innerHTML = '<div class="exito">✅ ' + (datos.mensaje || 'Asistencia registrada correctamente.') + '</div>';
         form.reset();
