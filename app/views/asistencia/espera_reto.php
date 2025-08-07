@@ -247,6 +247,10 @@ document.addEventListener('DOMContentLoaded', () => {
         body: formData
       });
       const datos = await respuesta.json();
+      // DEBUG INICIO
+      console.log('Clave seleccionada:', datos.debug_seleccionada);
+      console.log('Clave correcta:', datos.debug_correcta);
+      // DEBUG FIN
       if (datos.exito) {
         mensajeDiv.innerHTML = '<div class="exito">✅ ' + (datos.mensaje || 'Asistencia registrada correctamente.') + '</div>';
         form.reset();
