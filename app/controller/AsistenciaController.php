@@ -257,7 +257,17 @@ class AsistenciaController extends Controller
                         $this->invitacionModel->marcarAsistenciaVerificada($invitacion->id);
                 }
 
-                echo json_encode(['exito' => $correcto == 1]);
+                if ($correcto == 1) {
+                        echo json_encode([
+                                'exito'   => true,
+                                'mensaje' => '¡Asistencia registrada con éxito!'
+                        ], JSON_UNESCAPED_UNICODE);
+                } else {
+                        echo json_encode([
+                                'exito'   => false,
+                                'mensaje' => 'La combinación seleccionada no coincide con la clave dinámica.'
+                        ], JSON_UNESCAPED_UNICODE);
+                }
         }
 
 	public function registroAnonimo($id_evento = 0)

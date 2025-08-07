@@ -158,6 +158,20 @@ body {
 .boton-verificar:hover {
   background: #0056b3;
 }
+
+#mensaje .error {
+  background: #f8d7da;
+  color: #842029;
+  padding: 12px;
+  border-radius: 5px;
+}
+
+#mensaje .exito {
+  background: #d1e7dd;
+  color: #0f5132;
+  padding: 12px;
+  border-radius: 5px;
+}
 </style>
 
 <div class="container container-main d-flex align-items-center">
@@ -217,3 +231,31 @@ body {
     <div id="mensaje" class="mt-3"></div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.querySelector('form');
+  const mensajeDiv = document.getElementById('mensaje');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    mensajeDiv.innerHTML = '';
+    const formData = new FormData(form);
+    try {
+      const respuesta = await fetch(form.action, {
+        method: 'POST',
+        body: formData
+      });
+      const datos = await respuesta.json();
+      if (datos.exito) {
+        mensajeDiv.innerHTML = '<div class="exito">✅ ' + (datos.mensaje || 'Asistencia registrada correctamente.') + '</div>';
+        form.reset();
+      } else {
+        mensajeDiv.innerHTML = '<div class="error">❌ ' + (datos.mensaje || 'La combinación seleccionada no es correcta.') + '</div>';
+      }
+    } catch (err) {
+      mensajeDiv.innerHTML = '<div class="error">❌ Error al procesar la solicitud.</div>';
+    }
+  });
+});
+</script>
