@@ -61,8 +61,8 @@ $claveCorrecta = [
     'color' => $colorCor,
     'animal' => $animalCor
 ];
-error_log('Clave seleccionada: ' . json_encode($claveSeleccionada));
-error_log('Clave correcta: ' . json_encode($claveCorrecta));
+    echo 'Clave seleccionada: ' . json_encode($claveSeleccionada) . PHP_EOL;
+    echo 'Clave correcta: ' . json_encode($claveCorrecta) . PHP_EOL;
 // DEBUG FIN
 
 $correcto = (strcasecmp($frutaCor, $fruta) === 0 &&
