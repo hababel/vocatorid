@@ -39,9 +39,10 @@ $rutas_publicas = [
 	// Controlador 'asistencia'
         'asistencia/bienvenida',
         'asistencia/inicio',
-	'asistencia/registroAnonimo',
-	'asistencia/procesarRegistroAnonimo',
-	'asistencia/procesarQrPersonal', // API para kiosco físico
+        'asistencia/registroAnonimo',
+        'asistencia/procesarRegistroAnonimo',
+        'asistencia/procesarQrPersonal', // API para kiosco físico
+        'asistencia/validarReto',
 
 	// Controlador 'invitacion'
 	'invitacion/responder'
