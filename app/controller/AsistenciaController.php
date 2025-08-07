@@ -250,19 +250,8 @@ class AsistenciaController extends Controller
 
                 $codigoIngresado = $fruta . '-' . $color . '-' . $animal;
 
-                $claveSeleccionada = [
-                        'fruta' => $fruta,
-                        'color' => $color,
-                        'animal' => $animal
-                ];
-                $claveCorrecta = [
-                        'fruta' => $frutaCor,
-                        'color' => $colorCor,
-                        'animal' => $animalCor
-                ];
-
-                echo 'Clave seleccionada: ' . json_encode($claveSeleccionada) . PHP_EOL;
-                echo 'Clave correcta: ' . json_encode($claveCorrecta) . PHP_EOL;
+                echo "Combinación seleccionada por el usuario: $codigoIngresado\n";
+                echo "Clave correcta: " . $reto->codigo_actual . "\n";
 
                 $correcto = (strcasecmp($frutaCor, $fruta) === 0 && strcasecmp($colorCor, $color) === 0 && strcasecmp($animalCor, $animal) === 0) ? 1 : 0;
                 $this->registroRetoModel->crear($reto->id, $invitacion->id, $codigoIngresado, $_SERVER['REMOTE_ADDR'] ?? '', $correcto);
