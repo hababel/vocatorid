@@ -26,7 +26,10 @@ if (empty($reto->codigo_actual) || ($ahora - $timestamp) >= 40) {
     $codigo = $datos['codigo'];
     unset($datos['codigo']);
     if (method_exists($retoModel, 'actualizarCodigoYFecha')) {
-        $retoModel->actualizarCodigoYFecha($reto->id, $codigo);
+        $actualizado = $retoModel->actualizarCodigoYFecha($reto->id, $codigo);
+        if (!$actualizado) {
+            $retoModel->actualizarCodigo($reto->id, $codigo);
+        }
     } else {
         $retoModel->actualizarCodigo($reto->id, $codigo);
     }

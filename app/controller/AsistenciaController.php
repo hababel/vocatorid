@@ -160,7 +160,10 @@ class AsistenciaController extends Controller
                                 $codigo = $datos['codigo'];
                                 unset($datos['codigo']);
                                 if (method_exists($this->retoModel, 'actualizarCodigoYFecha')) {
-                                        $this->retoModel->actualizarCodigoYFecha($reto->id, $codigo);
+                                        $actualizado = $this->retoModel->actualizarCodigoYFecha($reto->id, $codigo);
+                                        if (!$actualizado) {
+                                                $this->retoModel->actualizarCodigo($reto->id, $codigo);
+                                        }
                                 } else {
                                         $this->retoModel->actualizarCodigo($reto->id, $codigo);
                                 }
