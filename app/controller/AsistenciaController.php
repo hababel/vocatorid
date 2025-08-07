@@ -157,21 +157,21 @@ class AsistenciaController extends Controller
                 $opciones_frutas = $recursos['frutas'];
                 $opciones_frutas = array_diff($opciones_frutas, [$fruta_correcta]);
                 shuffle($opciones_frutas);
-                $opciones_frutas = array_slice($opciones_frutas, 0, 5);
+                $opciones_frutas = array_slice($opciones_frutas, 0, 4);
                 $opciones_frutas[] = $fruta_correcta;
                 shuffle($opciones_frutas);
 
                 $opciones_animales = $recursos['animales'];
                 $opciones_animales = array_diff($opciones_animales, [$animal_correcto]);
                 shuffle($opciones_animales);
-                $opciones_animales = array_slice($opciones_animales, 0, 5);
+                $opciones_animales = array_slice($opciones_animales, 0, 4);
                 $opciones_animales[] = $animal_correcto;
                 shuffle($opciones_animales);
 
                 $opciones_colores = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple'];
                 $opciones_colores = array_diff($opciones_colores, [$invitacion->clave_texto]);
                 shuffle($opciones_colores);
-                $opciones_colores = array_slice($opciones_colores, 0, 5);
+                $opciones_colores = array_slice($opciones_colores, 0, 4);
                 $opciones_colores[] = $invitacion->clave_texto;
                 shuffle($opciones_colores);
 
