@@ -43,12 +43,28 @@ if ($registroRetoModel->yaCompletado($reto->id, $invitacion->id)) {
 
 $partes = explode('-', $reto->codigo_actual);
 if (count($partes) === 3) {
-    list($frutaCor, $colorCor, $animalCor) = $partes;
+    list($frutaCor, $colorCor, $animalCor) = array_map('trim', $partes);
 } else {
     $frutaCor = $colorCor = $animalCor = '';
 }
 
 $codigoIngresado = $fruta . '-' . $color . '-' . $animal;
+
+// DEBUG INICIO
+$claveSeleccionada = [
+    'fruta' => $fruta,
+    'color' => $color,
+    'animal' => $animal
+];
+$claveCorrecta = [
+    'fruta' => $frutaCor,
+    'color' => $colorCor,
+    'animal' => $animalCor
+];
+error_log('Clave seleccionada: ' . json_encode($claveSeleccionada));
+error_log('Clave correcta: ' . json_encode($claveCorrecta));
+// DEBUG FIN
+
 $correcto = (strcasecmp($frutaCor, $fruta) === 0 &&
              strcasecmp($colorCor, $color) === 0 &&
              strcasecmp($animalCor, $animal) === 0) ? 1 : 0;
@@ -59,14 +75,13 @@ if ($correcto == 1 && !$registroAsistenciaModel->yaRegistrado($invitacion->id)) 
     $invitacionModel->marcarAsistenciaVerificada($invitacion->id);
 }
 
-if ($correcto == 1) {
-    echo json_encode([
-        'exito'   => true,
-        'mensaje' => '¡Asistencia registrada con éxito!'
-    ], JSON_UNESCAPED_UNICODE);
-} else {
-    echo json_encode([
-        'exito'   => false,
-        'mensaje' => 'La combinación seleccionada no coincide con la clave dinámica.'
-    ], JSON_UNESCAPED_UNICODE);
-}
+$respuesta = ($correcto == 1)
+    ? ['exito' => true,  'mensaje' => '¡Asistencia registrada con éxito!']
+    : ['exito' => false, 'mensaje' => 'La combinación seleccionada no coincide con la clave dinámica.'];
+
+// DEBUG INICIO
+$respuesta['debug_seleccionada'] = $claveSeleccionada;
+$respuesta['debug_correcta'] = $claveCorrecta;
+// DEBUG FIN
+
+echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
