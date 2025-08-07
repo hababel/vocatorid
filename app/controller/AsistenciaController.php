@@ -180,13 +180,13 @@ class AsistenciaController extends Controller
 
                         $opciones_frutas = array_map(
                                 fn($n) => URL_PATH . 'core/img/clave_visual/frutas/' . $n . '.jpg',
-                                generarOpcionesLista($listaFrutas, $datos['fruta'])
+                                generarOpcionesLista($listaFrutas, $datos['fruta'], 6)
                         );
                         $opciones_animales = array_map(
                                 fn($n) => URL_PATH . 'core/img/clave_visual/animales/' . $n . '.jpg',
-                                generarOpcionesLista($listaAnimales, $datos['animal'])
+                                generarOpcionesLista($listaAnimales, $datos['animal'], 6)
                         );
-                        $opciones_colores = generarOpcionesLista($listaColores, $datos['color_hex']);
+                        $opciones_colores = generarOpcionesLista($listaColores, $datos['color_hex'], 6);
 
                         echo json_encode([
                                 'exito' => true,
