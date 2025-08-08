@@ -334,13 +334,18 @@ class EventoController extends Controller
                 header('Content-Type: application/json');
 
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                        echo json_encode(['exito' => false]);
+                        echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido.']);
                         return;
                 }
 
                 $evento = $this->eventoModel->obtenerPorId($id_evento);
                 if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
-                        echo json_encode(['exito' => false]);
+                        echo json_encode(['exito' => false, 'mensaje' => 'Evento no válido.']);
+                        return;
+                }
+
+                if (in_array($evento->estado, ['Finalizado', 'Cancelado'])) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'El evento se encuentra ' . strtolower($evento->estado) . '.']);
                         return;
                 }
 
@@ -348,7 +353,24 @@ class EventoController extends Controller
                 $hora_inicio = trim($_POST['hora_inicio'] ?? '');
                 $hora_fin = trim($_POST['hora_fin'] ?? '');
 
-                $id_reto = $this->retoModel->crear($id_evento, $descripcion, $hora_inicio, $hora_fin);
+                try {
+                        $inicio = new DateTime($hora_inicio);
+                        $fin = new DateTime($hora_fin);
+                } catch (Exception $e) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'Formato de fecha y hora inválido.']);
+                        return;
+                }
+
+                $fecha_evento = new DateTime($evento->fecha_evento);
+                $inicio_valido = (clone $fecha_evento)->modify('-8 days')->setTime(0, 0, 0);
+                $fin_valido = (clone $fecha_evento)->setTime(23, 59, 59);
+
+                if ($inicio < $inicio_valido || $fin > $fin_valido) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'La hora de inicio y fin deben estar dentro del rango permitido.']);
+                        return;
+                }
+
+                $id_reto = $this->retoModel->crear($id_evento, $descripcion, $inicio->format('Y-m-d H:i:s'), $fin->format('Y-m-d H:i:s'));
                 if ($id_reto) {
                         echo json_encode(['exito' => true]);
                 } else {
