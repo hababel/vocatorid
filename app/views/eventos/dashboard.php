@@ -4,6 +4,7 @@ $evento = $datos['evento'];
 ?>
 <div class="container-fluid px-md-4 py-4">
     <h1 class="h3 mb-4">Gestión de Retos de Asistencia - <?php echo htmlspecialchars($evento->nombre_evento); ?></h1>
+    <div id="alert-container"></div>
 
     <form id="form-reto" class="row g-2 mb-4">
         <div class="col-md-4">

@@ -436,6 +436,7 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
                <div class="tab-pane fade" id="retos" role="tabpanel" aria-labelledby="retos-tab">
                        <div class="card shadow-sm mb-4">
                                <div class="card-body">
+                                       <div id="alert-container"></div>
                                        <form id="form-reto" class="row g-2 mb-3">
                                                <div class="col-md-4">
                                                        <input type="text" name="descripcion" class="form-control" placeholder="Descripción del Reto" required>
