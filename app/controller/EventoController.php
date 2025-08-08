@@ -340,7 +340,12 @@ class EventoController extends Controller
 
                 $evento = $this->eventoModel->obtenerPorId($id_evento);
                 if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
-                        echo json_encode(['exito' => false]);
+                        echo json_encode(['exito' => false, 'mensaje' => 'Evento no válido.']);
+                        return;
+                }
+
+                if ($evento->estado !== 'Publicado' || (property_exists($evento, 'activo') && !$evento->activo)) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'El evento debe estar publicado y activo.']);
                         return;
                 }
 
@@ -348,7 +353,32 @@ class EventoController extends Controller
                 $hora_inicio = trim($_POST['hora_inicio'] ?? '');
                 $hora_fin = trim($_POST['hora_fin'] ?? '');
 
-                $id_reto = $this->retoModel->crear($id_evento, $descripcion, $hora_inicio, $hora_fin);
+
+                try {
+                        $inicio = new DateTime($hora_inicio);
+                        $fin = new DateTime($hora_fin);
+                } catch (Exception $e) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'Formato de fecha y hora inválido.']);
+                        return;
+                }
+
+                $fin_evento = new DateTime($evento->fecha_evento);
+                $fin_evento->setTime(23, 59, 59);
+                $inicio_valido = (clone $fin_evento)->modify('-10 days');
+
+                $ahora = new DateTime();
+                if ($ahora < $inicio_valido || $ahora > $fin_evento) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'No es permitida la creación del nuevo reto porque no está en las fechas establecidas.']);
+                        return;
+                }
+
+                if ($inicio < $inicio_valido || $fin > $fin_evento) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'No es permitida la creación del nuevo reto porque no está en las fechas establecidas.']);
+                        return;
+                }
+
+                $id_reto = $this->retoModel->crear($id_evento, $descripcion, $inicio->format('Y-m-d H:i:s'), $fin->format('Y-m-d H:i:s'));
+
                 if ($id_reto) {
                         echo json_encode(['exito' => true]);
                 } else {
