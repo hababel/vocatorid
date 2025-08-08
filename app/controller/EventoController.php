@@ -334,7 +334,7 @@ class EventoController extends Controller
                 header('Content-Type: application/json');
 
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                        echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido.']);
+                        echo json_encode(['exito' => false]);
                         return;
                 }
 
@@ -352,6 +352,7 @@ class EventoController extends Controller
                 $descripcion = trim($_POST['descripcion'] ?? '');
                 $hora_inicio = trim($_POST['hora_inicio'] ?? '');
                 $hora_fin = trim($_POST['hora_fin'] ?? '');
+
 
                 try {
                         $inicio = new DateTime($hora_inicio);
@@ -377,6 +378,7 @@ class EventoController extends Controller
                 }
 
                 $id_reto = $this->retoModel->crear($id_evento, $descripcion, $inicio->format('Y-m-d H:i:s'), $fin->format('Y-m-d H:i:s'));
+
                 if ($id_reto) {
                         echo json_encode(['exito' => true]);
                 } else {
