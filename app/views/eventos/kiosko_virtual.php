@@ -1,6 +1,7 @@
 <?php
 // El header.php se carga automáticamente desde el controlador.
 $evento = $datos['evento'];
+$mensaje_alerta = $datos['mensaje_alerta'] ?? '';
 
 $api_url  = URL_PATH . 'get_codigo_reto.php?id_evento=' . $evento->id;
 $token_data = @json_decode(@file_get_contents($api_url), true) ?: [];
@@ -32,6 +33,7 @@ $tiempo_restante = isset($token_data['tiempo_restante']) ? (int)$token_data['tie
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Kiosko Virtual</title>
     <style>
@@ -123,6 +125,8 @@ body {
 <body>
 <div class="kiosko-wrapper" id="fondo-dinamico">
   <div class="kiosko-card">
+    <div id="alert-container"></div>
+    <?php if (empty($mensaje_alerta)): ?>
     <h1 class="titulo-kiosko">🔹 Clave Dinámica del Reto Actual 🔹</h1>
 
     <div class="clave-visual">
@@ -135,9 +139,11 @@ body {
       <div id="barra-progreso"></div>
       <span id="contador"></span>
     </div>
+    <?php endif; ?>
   </div>
 </div>
 
+<?php if (empty($mensaje_alerta)): ?>
 <div id="clave-data"
      data-fruta-nombre="<?= htmlspecialchars($fruta['nombre'], ENT_QUOTES, 'UTF-8') ?>"
      data-fruta-url="<?= htmlspecialchars($fruta['url'], ENT_QUOTES, 'UTF-8') ?>"
@@ -269,5 +275,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 </script>
+<?php else: ?>
+<script>
+function mostrarAlerta(mensaje, tipo = 'danger'){
+  const cont = document.getElementById('alert-container');
+  if(!cont){
+    alert(mensaje);
+    return;
+  }
+  cont.innerHTML = `<div class="alert alert-${tipo} alert-dismissible fade show text-center" role="alert">${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  mostrarAlerta(<?= json_encode($mensaje_alerta) ?>);
+});
+</script>
+<?php endif; ?>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
