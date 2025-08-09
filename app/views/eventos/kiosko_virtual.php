@@ -32,6 +32,7 @@ $tiempo_restante = isset($token_data['tiempo_restante']) ? (int)$token_data['tie
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Kiosko Virtual</title>
     <style>
@@ -269,5 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

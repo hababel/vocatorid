@@ -1,5 +1,14 @@
 // Gestion dinámica de retos para el dashboard del organizador
 
+function mostrarAlerta(mensaje, tipo = 'danger'){
+    const cont = document.getElementById('alert-container');
+    if(!cont){
+        alert(mensaje);
+        return;
+    }
+    cont.innerHTML = `<div class="alert alert-${tipo} alert-dismissible fade show text-center" role="alert">${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
+}
+
 async function cargarRetos(){
     const res = await fetch(`${URL_BASE}evento/estadoRetos/${ID_EVENTO}`);
     const data = await res.json();
@@ -25,10 +34,10 @@ async function crearReto(ev){
     const data = await res.json();
     if(data.exito){
         form.reset();
-        alert('Reto creado correctamente');
+        mostrarAlerta('Reto creado correctamente', 'success');
         cargarRetos();
     }else{
-        alert('Error al crear reto');
+        mostrarAlerta(data.mensaje || 'Error al crear reto', 'danger');
     }
 }
 
