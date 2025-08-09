@@ -28,17 +28,26 @@ class InvitacionController extends Controller
 			return;
 		}
 
-		$id_evento = $_POST['id_evento'] ?? 0;
-		$modo = $_POST['modo_agregar'] ?? '';
-		$enviar_ahora = isset($_POST['enviar_invitacion_ahora']);
-		$id_organizador = $_SESSION['id_organizador'];
+                $id_evento = $_POST['id_evento'] ?? 0;
+                $modo = $_POST['modo_agregar'] ?? '';
+                $enviar_ahora = isset($_POST['enviar_invitacion_ahora']);
+                $id_organizador = $_SESSION['id_organizador'];
 
-		$evento = $this->eventoModel->obtenerPorId($id_evento);
-		if (!$evento || $evento->id_organizador != $id_organizador) {
-			$this->crearMensaje('error', 'Evento no válido o no tienes permiso.');
-			$this->redireccionar('organizador/panel');
-			return;
-		}
+                $evento = $this->eventoModel->obtenerPorId($id_evento);
+                if (!$evento || $evento->id_organizador != $id_organizador) {
+                        $this->crearMensaje('error', 'Evento no válido o no tienes permiso.');
+                        $this->redireccionar('organizador/panel');
+                        return;
+                }
+
+                $envio_permitido = true;
+                if ($enviar_ahora) {
+                        $mensaje_validacion = $this->validarEnvioInvitaciones($evento);
+                        if ($mensaje_validacion !== '') {
+                                $envio_permitido = false;
+                                $this->crearMensaje('error', $mensaje_validacion . ' Ninguna invitación fue enviada.');
+                        }
+                }
 
 		$nuevas_invitaciones = [];
 		$invitados_ya_existentes = 0;
@@ -181,15 +190,15 @@ class InvitacionController extends Controller
 				break;
 		}
 
-		$envios_exitosos = 0;
-		if ($enviar_ahora && !empty($nuevas_invitaciones)) {
-			foreach ($nuevas_invitaciones as $invitacion) {
-				if ($this->_enviarCorreoInvitacion($invitacion, $evento, $invitacion->token_acceso)) {
-					$this->invitacionModel->actualizarFechaInvitacion($invitacion->id);
-					$envios_exitosos++;
-				}
-			}
-		}
+                $envios_exitosos = 0;
+                if ($enviar_ahora && $envio_permitido && !empty($nuevas_invitaciones)) {
+                        foreach ($nuevas_invitaciones as $invitacion) {
+                                if ($this->_enviarCorreoInvitacion($invitacion, $evento, $invitacion->token_acceso)) {
+                                        $this->invitacionModel->actualizarFechaInvitacion($invitacion->id);
+                                        $envios_exitosos++;
+                                }
+                        }
+                }
 
 		if (!isset($_SESSION['mensaje'])) {
 			$mensaje_final = count($nuevas_invitaciones) . " invitado(s) agregado(s) al evento. ";
@@ -240,14 +249,20 @@ class InvitacionController extends Controller
 			$id_evento = $_POST['id_evento'];
 			$accion = $_POST['accion'];
 
-			$evento = $this->eventoModel->obtenerPorId($id_evento);
-			if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
-				echo json_encode(['exito' => false, 'mensaje' => 'No tienes permiso para este evento.']);
-				exit();
-			}
+                        $evento = $this->eventoModel->obtenerPorId($id_evento);
+                        if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                                echo json_encode(['exito' => false, 'mensaje' => 'No tienes permiso para este evento.']);
+                                exit();
+                        }
 
-			$invitaciones_a_enviar = [];
-			$envios_exitosos = 0;
+                        $mensaje_validacion = $this->validarEnvioInvitaciones($evento);
+                        if ($mensaje_validacion !== '') {
+                                echo json_encode(['exito' => false, 'mensaje' => $mensaje_validacion]);
+                                exit();
+                        }
+
+                        $invitaciones_a_enviar = [];
+                        $envios_exitosos = 0;
 
 			if ($accion == 'enviar_pendientes') {
 				$invitaciones_a_enviar = $this->invitacionModel->obtenerInvitacionesPendientes($id_evento);
@@ -274,15 +289,20 @@ class InvitacionController extends Controller
 
 	public function enviarMasivoPostPublicacion($id_evento)
 	{
-		$this->verificarSesion();
-		$evento = $this->eventoModel->obtenerPorId($id_evento);
-		if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
-			return ['iniciales' => 0, 'recordatorios' => 0];
-		}
+                $this->verificarSesion();
+                $evento = $this->eventoModel->obtenerPorId($id_evento);
+                if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                        return ['iniciales' => 0, 'recordatorios' => 0];
+                }
 
-		$invitados = $this->invitacionModel->obtenerInvitadosPorEvento($id_evento, $_SESSION['id_organizador']);
-		$contador_iniciales = 0;
-		$contador_recordatorios = 0;
+                $mensaje_validacion = $this->validarEnvioInvitaciones($evento);
+                if ($mensaje_validacion !== '') {
+                        return ['iniciales' => 0, 'recordatorios' => 0, 'mensaje' => $mensaje_validacion];
+                }
+
+                $invitados = $this->invitacionModel->obtenerInvitadosPorEvento($id_evento, $_SESSION['id_organizador']);
+                $contador_iniciales = 0;
+                $contador_recordatorios = 0;
 
 		foreach ($invitados as $invitado) {
 			if (is_null($invitado->fecha_invitacion)) {
@@ -328,8 +348,8 @@ class InvitacionController extends Controller
 		$this->vista('asistencia/respuesta_rsvp', $datos);
 	}
 
-	public function reenviar($id_invitacion = 0)
-	{
+        public function reenviar($id_invitacion = 0)
+        {
 		$this->verificarSesion();
 		$invitacion = $this->invitacionModel->obtenerPorId($id_invitacion);
 		if (!$invitacion) {
@@ -337,25 +357,47 @@ class InvitacionController extends Controller
 			$this->redireccionar('organizador/panel');
 			return;
 		}
-		$evento = $this->eventoModel->obtenerPorId($invitacion->id_evento);
-		if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
-			$this->crearMensaje('error', 'No tienes permiso para reenviar esta invitación.');
-			$this->redireccionar('organizador/panel');
-			return;
-		}
+                $evento = $this->eventoModel->obtenerPorId($invitacion->id_evento);
+                if (!$evento || $evento->id_organizador != $_SESSION['id_organizador']) {
+                        $this->crearMensaje('error', 'No tienes permiso para reenviar esta invitación.');
+                        $this->redireccionar('organizador/panel');
+                        return;
+                }
 
-		if ($this->_enviarCorreoInvitacion($invitacion, $evento, $invitacion->token_acceso)) {
-			$this->invitacionModel->actualizarFechaInvitacion($id_invitacion);
-			$this->crearMensaje('exito', 'Invitación reenviada exitosamente a ' . $invitacion->email);
-		} else {
-			$this->crearMensaje('error', 'No se pudo reenviar la invitación.');
-		}
-		$this->redireccionar('evento/gestionar/' . $invitacion->id_evento);
-	}
+                $mensaje_validacion = $this->validarEnvioInvitaciones($evento);
+                if ($mensaje_validacion !== '') {
+                        $this->crearMensaje('error', $mensaje_validacion . ' Ninguna invitación fue enviada.');
+                        $this->redireccionar('evento/gestionar/' . $invitacion->id_evento);
+                        return;
+                }
 
-	private function _enviarCorreoInvitacion($contacto_o_invitacion, $evento, $token_acceso)
-	{
-		$asunto = "Tu Credencial para: " . $evento->nombre_evento;
+                if ($this->_enviarCorreoInvitacion($invitacion, $evento, $invitacion->token_acceso)) {
+                        $this->invitacionModel->actualizarFechaInvitacion($id_invitacion);
+                        $this->crearMensaje('exito', 'Invitación reenviada exitosamente a ' . $invitacion->email);
+                } else {
+                        $this->crearMensaje('error', 'No se pudo reenviar la invitación.');
+                }
+                $this->redireccionar('evento/gestionar/' . $invitacion->id_evento);
+        }
+
+        private function validarEnvioInvitaciones($evento)
+        {
+                if ($evento->estado !== 'Publicado' || (property_exists($evento, 'activo') && !$evento->activo)) {
+                        return 'El evento debe estar publicado y activo.';
+                }
+                $fin_evento = new DateTime($evento->fecha_evento);
+                $fin_evento->setTime(23, 59, 59);
+                $inicio_valido = (clone $fin_evento)->modify('-10 days');
+                $ahora = new DateTime();
+                if ($ahora < $inicio_valido || $ahora > $fin_evento) {
+                        return 'No es permitido enviar invitaciones porque no está en las fechas establecidas.';
+                }
+                return '';
+        }
+
+        private function _enviarCorreoInvitacion($contacto_o_invitacion, $evento, $token_acceso)
+        {
+                $asunto = "Tu Credencial para: " . $evento->nombre_evento;
 
 		// 1. Definir todas las variables que la plantilla necesita
 		$nombre_invitado = $contacto_o_invitacion->nombre;

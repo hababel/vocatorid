@@ -276,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+
 <?php else: ?>
 <script>
 function mostrarAlerta(mensaje, tipo = 'danger'){

@@ -205,15 +205,19 @@ class EventoController extends Controller
 			$id_evento = $_POST['id_evento'];
 			$id_organizador = $_SESSION['id_organizador'];
 
-			$this->eventoModel->cambiarEstado($id_evento, $id_organizador, 'Publicado');
+                        $this->eventoModel->cambiarEstado($id_evento, $id_organizador, 'Publicado');
 
-			$invitacionController = new InvitacionController();
-			$resultado_envio = $invitacionController->enviarMasivoPostPublicacion($id_evento);
+                        $invitacionController = new InvitacionController();
+                        $resultado_envio = $invitacionController->enviarMasivoPostPublicacion($id_evento);
 
-			$mensaje = "Evento publicado exitosamente. ";
-			$mensaje .= "Se enviaron {$resultado_envio['iniciales']} invitaciones nuevas y ";
-			$mensaje .= "se enviaron {$resultado_envio['recordatorios']} recordatorios.";
-			$this->crearMensaje('exito', $mensaje);
+                        if (isset($resultado_envio['mensaje'])) {
+                                $this->crearMensaje('error', $resultado_envio['mensaje']);
+                        } else {
+                                $mensaje = "Evento publicado exitosamente. ";
+                                $mensaje .= "Se enviaron {$resultado_envio['iniciales']} invitaciones nuevas y ";
+                                $mensaje .= "se enviaron {$resultado_envio['recordatorios']} recordatorios.";
+                                $this->crearMensaje('exito', $mensaje);
+                        }
 
 			$this->redireccionar('evento/gestionar/' . $id_evento);
 		} else {
