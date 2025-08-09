@@ -245,12 +245,35 @@ class EventoController extends Controller
                 if (!$evento) {
                         die('Este evento no existe.');
                 }
-                $datos = [
-                        'titulo' => 'Kiosko Virtual - ' . $evento->nombre_evento,
-                        'evento' => $evento
-                ];
-                extract($datos);
-                require_once APP_BASE_PHYSICAL_PATH . '/app/views/eventos/kiosko_virtual.php';
+
+                $mensaje = '';
+
+                if ($evento->estado !== 'Publicado' || (property_exists($evento, 'activo') && !$evento->activo)) {
+                        $mensaje = 'El evento debe estar publicado y activo.';
+                } else {
+                        $fin_evento = new DateTime($evento->fecha_evento);
+                        $fin_evento->setTime(23, 59, 59);
+                        $inicio_valido = (clone $fin_evento)->modify('-10 days');
+                        $ahora = new DateTime();
+                        if ($ahora < $inicio_valido || $ahora > $fin_evento) {
+                                $mensaje = 'No es permitida la apertura del kiosko virtual porque no está en las fechas establecidas.';
+                        }
+                }
+
+               if ($mensaje !== '') {
+                       if (session_status() === PHP_SESSION_NONE) {
+                               session_start();
+                       }
+                       $_SESSION['mensaje_kiosko'] = ['tipo' => 'error', 'texto' => $mensaje];
+                       $this->redireccionar('evento/gestionar/' . $id_evento);
+               } else {
+                       $datos = [
+                               'titulo' => 'Kiosko Virtual - ' . $evento->nombre_evento,
+                               'evento' => $evento
+                       ];
+                       extract($datos);
+                       require_once APP_BASE_PHYSICAL_PATH . '/app/views/eventos/kiosko_virtual.php';
+               }
         }
 
         public function generarTokenKiosco($id_evento)
@@ -344,8 +367,8 @@ class EventoController extends Controller
                         return;
                 }
 
-                if (in_array($evento->estado, ['Finalizado', 'Cancelado'])) {
-                        echo json_encode(['exito' => false, 'mensaje' => 'El evento se encuentra ' . strtolower($evento->estado) . '.']);
+                if ($evento->estado !== 'Publicado' || (property_exists($evento, 'activo') && !$evento->activo)) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'El evento debe estar publicado y activo.']);
                         return;
                 }
 
@@ -361,12 +384,18 @@ class EventoController extends Controller
                         return;
                 }
 
-                $fecha_evento = new DateTime($evento->fecha_evento);
-                $inicio_valido = (clone $fecha_evento)->modify('-8 days')->setTime(0, 0, 0);
-                $fin_valido = (clone $fecha_evento)->setTime(23, 59, 59);
+                $fin_evento = new DateTime($evento->fecha_evento);
+                $fin_evento->setTime(23, 59, 59);
+                $inicio_valido = (clone $fin_evento)->modify('-10 days');
 
-                if ($inicio < $inicio_valido || $fin > $fin_valido) {
-                        echo json_encode(['exito' => false, 'mensaje' => 'La hora de inicio y fin deben estar dentro del rango permitido.']);
+                $ahora = new DateTime();
+                if ($ahora < $inicio_valido || $ahora > $fin_evento) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'No es permitida la creación del nuevo reto porque no está en las fechas establecidas.']);
+                        return;
+                }
+
+                if ($inicio < $inicio_valido || $fin > $fin_evento) {
+                        echo json_encode(['exito' => false, 'mensaje' => 'No es permitida la creación del nuevo reto porque no está en las fechas establecidas.']);
                         return;
                 }
 
