@@ -264,6 +264,7 @@ class EventoController extends Controller
                         }
                 }
 
+
                if ($mensaje !== '') {
                        if (session_status() === PHP_SESSION_NONE) {
                                session_start();
@@ -278,6 +279,7 @@ class EventoController extends Controller
                        extract($datos);
                        require_once APP_BASE_PHYSICAL_PATH . '/app/views/eventos/kiosko_virtual.php';
                }
+
         }
 
         public function generarTokenKiosco($id_evento)
@@ -361,7 +363,7 @@ class EventoController extends Controller
                 header('Content-Type: application/json');
 
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                        echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido.']);
+                        echo json_encode(['exito' => false]);
                         return;
                 }
 
@@ -380,6 +382,7 @@ class EventoController extends Controller
                 $hora_inicio = trim($_POST['hora_inicio'] ?? '');
                 $hora_fin = trim($_POST['hora_fin'] ?? '');
 
+
                 try {
                         $inicio = new DateTime($hora_inicio);
                         $fin = new DateTime($hora_fin);
@@ -392,11 +395,13 @@ class EventoController extends Controller
                 $fin_evento->setTime(23, 59, 59);
                 $inicio_valido = (clone $fin_evento)->modify('-10 days');
 
+
                 $ahora = new DateTime();
                 if ($ahora < $inicio_valido || $ahora > $fin_evento) {
                         echo json_encode(['exito' => false, 'mensaje' => 'No es permitida la creación del nuevo reto porque no está en las fechas establecidas.']);
                         return;
                 }
+
 
                 if ($inicio < $inicio_valido || $fin > $fin_evento) {
                         echo json_encode(['exito' => false, 'mensaje' => 'No es permitida la creación del nuevo reto porque no está en las fechas establecidas.']);
@@ -404,6 +409,7 @@ class EventoController extends Controller
                 }
 
                 $id_reto = $this->retoModel->crear($id_evento, $descripcion, $inicio->format('Y-m-d H:i:s'), $fin->format('Y-m-d H:i:s'));
+
                 if ($id_reto) {
                         echo json_encode(['exito' => true]);
                 } else {
