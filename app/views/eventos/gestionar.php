@@ -255,10 +255,21 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 					<?php endif; ?>
 				</div>
 			</div>
-		</div>
-	</div>
+                </div>
+        </div>
 
-	<ul class="nav nav-tabs mb-4" id="eventoTab" role="tablist">
+        <?php
+        if (isset($_SESSION['mensaje_kiosko'])) {
+                $tipo_alerta = $_SESSION['mensaje_kiosko']['tipo'] === 'success' ? 'alert-success' : 'alert-danger';
+                echo '<div id="kioskoAlert" class="alert ' . $tipo_alerta . ' alert-dismissible fade show text-center mt-3" role="alert">';
+                echo htmlspecialchars($_SESSION['mensaje_kiosko']['texto']);
+                echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+                echo '</div>';
+                unset($_SESSION['mensaje_kiosko']);
+        }
+        ?>
+
+        <ul class="nav nav-tabs mb-4" id="eventoTab" role="tablist">
 		<li class="nav-item" role="presentation"><button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="true"><i class="bi bi-speedometer2 me-2"></i>Dashboard</button></li>
 		<li class="nav-item" role="presentation"><button class="nav-link" id="invitados-tab" data-bs-toggle="tab" data-bs-target="#invitados" type="button" role="tab" aria-controls="invitados" aria-selected="false"><i class="bi bi-people-fill me-2"></i>Gestionar Invitados (<?php echo $total_invitados; ?>)</button></li>
                <li class="nav-item" role="presentation"><button class="nav-link" id="agregar-invitados-tab" data-bs-toggle="tab" data-bs-target="#agregar-invitados" type="button" role="tab" aria-controls="agregar-invitados" aria-selected="false"><i class="bi bi-person-plus-fill me-2"></i>Agregar Invitados</button></li>
@@ -580,17 +591,19 @@ $porcentaje_eficiencia = ($total_invitados > 0) ? ($total_registrados / $total_i
 			}).setView([lat, lng], 15);
 			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 			L.marker([lat, lng]).addTo(map).bindPopup('<b><?php echo htmlspecialchars($evento->nombre_evento); ?></b>').openPopup();
-		<?php endif; ?>
+                <?php endif; ?>
 
-		const alertElement = document.getElementById('autoCloseAlert');
-		if (alertElement) {
-			setTimeout(function() {
-				const bsAlert = new bootstrap.Alert(alertElement);
-				bsAlert.close();
-			}, 8000);
-		}
+                ['autoCloseAlert', 'kioskoAlert'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                                setTimeout(() => {
+                                        const bsAlert = new bootstrap.Alert(el);
+                                        bsAlert.close();
+                                }, 8000);
+                        }
+                });
 
-		const invitadosData = <?php echo json_encode($invitados); ?> || [];
+                const invitadosData = <?php echo json_encode($invitados); ?> || [];
 		const tbody = document.getElementById('invitados-tbody');
 		const searchInput = document.getElementById('searchInput');
 

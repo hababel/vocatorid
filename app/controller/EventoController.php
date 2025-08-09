@@ -260,13 +260,22 @@ class EventoController extends Controller
                         }
                 }
 
-                $datos = [
-                        'titulo' => 'Kiosko Virtual - ' . $evento->nombre_evento,
-                        'evento' => $evento,
-                        'mensaje_alerta' => $mensaje
-                ];
-                extract($datos);
-                require_once APP_BASE_PHYSICAL_PATH . '/app/views/eventos/kiosko_virtual.php';
+
+               if ($mensaje !== '') {
+                       if (session_status() === PHP_SESSION_NONE) {
+                               session_start();
+                       }
+                       $_SESSION['mensaje_kiosko'] = ['tipo' => 'error', 'texto' => $mensaje];
+                       $this->redireccionar('evento/gestionar/' . $id_evento);
+               } else {
+                       $datos = [
+                               'titulo' => 'Kiosko Virtual - ' . $evento->nombre_evento,
+                               'evento' => $evento
+                       ];
+                       extract($datos);
+                       require_once APP_BASE_PHYSICAL_PATH . '/app/views/eventos/kiosko_virtual.php';
+               }
+
         }
 
         public function generarTokenKiosco($id_evento)
@@ -382,11 +391,13 @@ class EventoController extends Controller
                 $fin_evento->setTime(23, 59, 59);
                 $inicio_valido = (clone $fin_evento)->modify('-10 days');
 
+
                 $ahora = new DateTime();
                 if ($ahora < $inicio_valido || $ahora > $fin_evento) {
                         echo json_encode(['exito' => false, 'mensaje' => 'No es permitida la creación del nuevo reto porque no está en las fechas establecidas.']);
                         return;
                 }
+
 
                 if ($inicio < $inicio_valido || $fin > $fin_evento) {
                         echo json_encode(['exito' => false, 'mensaje' => 'No es permitida la creación del nuevo reto porque no está en las fechas establecidas.']);

@@ -275,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 </script>
+
 <?php else: ?>
 <script>
 function mostrarAlerta(mensaje, tipo = 'danger'){
@@ -291,6 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <?php endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
